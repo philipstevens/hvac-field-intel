@@ -181,14 +181,6 @@ export default function SessionWorkspacePage() {
         });
         setNewMessageIds(responseIds);
 
-        // Navigate to report review page if a report was generated
-        const hasReportGenerated = responses.some(
-          (r: Message) => r.messageType === "report_generated"
-        );
-        if (hasReportGenerated) {
-          setTimeout(() => router.push(`/session/${sessionId}/report`), 600);
-        }
-
         // Refresh session details (equipment may have been identified)
         fetchSession();
       }

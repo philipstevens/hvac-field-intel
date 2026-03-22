@@ -506,22 +506,26 @@ function ReportGeneratedCard({ content, metadata }: { content: string; metadata:
         </div>
       )}
 
-      <div className="flex gap-2 pt-1">
-        <a
-          href={metadata.reportId ? `/reports/${metadata.reportId}` : "/reports/new"}
-          className="btn-secondary flex-1 text-center text-sm"
-        >
-          Review & Edit
-        </a>
-        <button className="btn-primary flex-1 text-sm">
-          Submit Report
-        </button>
-      </div>
+      {metadata.missingFields && metadata.missingFields.length > 0 && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+          <p className="text-xs text-amber-700 font-medium">
+            {metadata.missingFields.length} field{metadata.missingFields.length !== 1 ? "s" : ""} still need your input — highlighted in the form
+          </p>
+        </div>
+      )}
+
+      <a
+        href={metadata.sessionId ? `/session/${metadata.sessionId}/report` : "/session"}
+        className="btn-primary flex w-full items-center justify-center gap-2 text-sm py-3"
+      >
+        <ClipboardList className="h-4 w-4" />
+        Review & Submit
+      </a>
     </div>
   );
 }
 
-function MeasurementCard({ content, metadata }: { content: string; metadata: Record<string, any> }) {
+function MeasurementCard({ content }: { content: string; metadata: Record<string, any> }) {
   return (
     <div className="rounded-xl border border-purple-200 bg-purple-50/60 p-4 space-y-2">
       <div className="flex items-center gap-2">

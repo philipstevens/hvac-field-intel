@@ -346,6 +346,13 @@ async function handleEquipmentId(
       .update(sessions)
       .set({ serialNumber: serialMatch[0] })
       .where(eq(sessions.id, sessionId));
+  } else {
+    responses.push({
+      role: 'system',
+      messageType: 'text',
+      content: "Got it. Do you have the serial number on the data plate? It's needed for warranty documentation.",
+      metadata: JSON.stringify({ askingForSerial: true }),
+    });
   }
 
   // Get serial ranges
@@ -961,7 +968,27 @@ async function handleGenerateReport(
     modelInfo = model || null;
   }
 
+  // Detect missing report-critical fields
+  const allUserText = messages
+    .filter((m) => m.role === 'user')
+    .map((m) => m.content.toLowerCase())
+    .join(' ');
+
+  const missingFields: string[] = [];
+  if (!session.serialNumber && !/serial|s\/n|\bsn\b/.test(allUserText)) {
+    missingFields.push('serial number');
+  }
+  const hasRootCause = /capacitor|contactor|fan motor|refrigerant|leak|control board|sensor|defrost|airflow/i.test(allUserText);
+  if (!hasRootCause) {
+    missingFields.push('root cause (e.g. capacitor failure, refrigerant leak)');
+  }
+  const hasArrivalInfo = /running|not running|not working|won.?t start|operating|no power/i.test(allUserText);
+  if (!hasArrivalInfo) {
+    missingFields.push('whether the system was running on arrival');
+  }
+
   const reportFields = {
+    sessionId,
     technicianName: session.technicianName,
     customerName: session.customerName,
     siteAddress: session.siteAddress,
@@ -974,16 +1001,34 @@ async function handleGenerateReport(
     bulletinsReviewed,
     sessionMessageCount: messages.length,
     sessionStarted: session.createdAt,
+    missingFields,
   };
 
-  return [
-    {
+  const responses: ResponseMessage[] = [];
+
+  // Ask for missing info conversationally
+  if (missingFields.length > 0) {
+    const itemList = missingFields.length === 1
+      ? missingFields[0]
+      : missingFields.slice(0, -1).join(', ') + ' and ' + missingFields[missingFields.length - 1];
+    responses.push({
       role: 'system',
-      messageType: 'report_generated',
-      content: `Service report draft generated for ${reportFields.equipment}. Review the pre-filled fields and complete any remaining sections before submitting.`,
-      metadata: JSON.stringify(reportFields),
-    },
-  ];
+      messageType: 'text',
+      content: `Almost done. A few things I still need for the report: ${itemList}. What are they? (Or tap Review & Submit below to fill them in manually.)`,
+      metadata: JSON.stringify({ collectingReportInfo: true, missingFields }),
+    });
+  }
+
+  responses.push({
+    role: 'system',
+    messageType: 'report_generated',
+    content: missingFields.length > 0
+      ? `Report draft ready for ${reportFields.equipment}. ${missingFields.length} field(s) highlighted need your input.`
+      : `Report draft ready for ${reportFields.equipment}. Review the pre-filled fields before submitting.`,
+    metadata: JSON.stringify(reportFields),
+  });
+
+  return responses;
 }
 
 function handleUnknown(): ResponseMessage[] {
