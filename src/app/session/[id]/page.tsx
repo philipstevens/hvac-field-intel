@@ -314,6 +314,7 @@ export default function SessionWorkspacePage() {
               key={msg.id}
               message={msg}
               isNew={newMessageIds.has(msg.id)}
+              sessionId={sessionId}
             />
           ))}
 

@@ -31,6 +31,7 @@ export interface Message {
 interface ChatMessageProps {
   message: Message;
   isNew?: boolean;
+  sessionId?: string;
 }
 
 export function formatRelativeTime(isoString: string): string {
@@ -483,7 +484,7 @@ function SuggestionCard({ content, metadata }: { content: string; metadata: Reco
   );
 }
 
-function ReportGeneratedCard({ content, metadata }: { content: string; metadata: Record<string, any> }) {
+function ReportGeneratedCard({ content, metadata, sessionId }: { content: string; metadata: Record<string, any>; sessionId?: string }) {
   return (
     <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4 space-y-3">
       <div className="flex items-center gap-2">
@@ -515,7 +516,7 @@ function ReportGeneratedCard({ content, metadata }: { content: string; metadata:
       )}
 
       <a
-        href={metadata.sessionId ? `/session/${metadata.sessionId}/report` : "/session"}
+        href={`/session/${metadata.sessionId ?? sessionId}/report`}
         className="btn-primary flex w-full items-center justify-center gap-2 text-sm py-3"
       >
         <ClipboardList className="h-4 w-4" />
@@ -539,7 +540,7 @@ function MeasurementCard({ content }: { content: string; metadata: Record<string
   );
 }
 
-export function ChatMessage({ message, isNew = false }: ChatMessageProps) {
+export function ChatMessage({ message, isNew = false, sessionId }: ChatMessageProps) {
   const metadata = parseMetadata(message.metadata);
   const isUser = message.role === "user";
 
@@ -581,7 +582,7 @@ export function ChatMessage({ message, isNew = false }: ChatMessageProps) {
               <SuggestionCard content={message.content} metadata={metadata} />
             )}
             {message.messageType === "report_generated" && (
-              <ReportGeneratedCard content={message.content} metadata={metadata} />
+              <ReportGeneratedCard content={message.content} metadata={metadata} sessionId={sessionId} />
             )}
             {message.messageType === "measurement" && (
               <MeasurementCard content={message.content} metadata={metadata} />
