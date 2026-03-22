@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Cpu, Wrench, AlertTriangle, MessageSquare } from "lucide-react";
+import { Home, MessageSquare } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface NavItem {
@@ -14,10 +14,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Home", href: "/", icon: Home },
-  { label: "Session", href: "/session", icon: MessageSquare, highlight: true },
-  { label: "Equipment", href: "/equipment", icon: Cpu },
-  { label: "Parts", href: "/parts", icon: Wrench },
-  { label: "Bulletins", href: "/bulletins", icon: AlertTriangle },
+  { label: "Sessions", href: "/session", icon: MessageSquare, highlight: true },
 ];
 
 export function BottomNav() {

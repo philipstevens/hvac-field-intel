@@ -15,9 +15,10 @@ import {
   Wrench,
   Clock,
   MessageSquare,
+  Package,
 } from "lucide-react";
 import clsx from "clsx";
-import { ChatMessage, formatRelativeTime } from "@/components/chat-message";
+import { ChatMessage, EquipmentIdentifiedCard, BulletinAlertCard, PartsInfoCard, formatRelativeTime } from "@/components/chat-message";
 import type { Message } from "@/components/chat-message";
 import { QuickActions } from "@/components/quick-actions";
 
@@ -50,7 +51,7 @@ interface SessionDetails {
 const PRE_EQUIPMENT_HINTS = [
   "Carrier 24ANB636A003",
   "Trane 4TTR6036J1000A",
-  "Lennox XC16-036-230",
+  "Heatcraft BEH030A6K",
 ];
 
 const POST_EQUIPMENT_CHIPS = [
@@ -407,19 +408,30 @@ interface ContextPanelContentProps {
 
 function ContextPanelContent({
   session,
-  bulletinsCount,
-  partsCount,
+  bulletinsCount: _bulletinsCount,
+  partsCount: _partsCount,
   messages,
 }: ContextPanelContentProps) {
+  const [showBulletins, setShowBulletins] = useState(false);
+  const [showParts, setShowParts] = useState(false);
+
   if (!session) return null;
+
+  const hasEquipment = !!session.equipmentModelId;
+
+  // Extract typed messages for the panel
+  const equipmentMsg = messages.filter((m) => m.messageType === "equipment_identified").at(-1);
+  const bulletinMsgs = messages.filter((m) => m.messageType === "bulletin_alert");
+  const partsMsgs = messages.filter((m) => m.messageType === "parts_info");
+
+  function parseMetadata(metadata: string | null): Record<string, any> {
+    if (!metadata) return {};
+    try { return JSON.parse(metadata); } catch { return {}; }
+  }
 
   // Build timeline events from messages
   const events = messages
-    .filter(
-      (m) =>
-        m.role === "system" &&
-        m.messageType !== "text"
-    )
+    .filter((m) => m.role === "system" && m.messageType !== "text")
     .map((m) => ({
       type: m.messageType,
       time: m.createdAt,
@@ -450,8 +462,18 @@ function ContextPanelContent({
         </div>
       </div>
 
-      {/* Equipment Summary */}
-      {session.equipmentModelId && (
+      {/* Equipment — full card from message, or compact fallback */}
+      {hasEquipment && equipmentMsg ? (
+        <div>
+          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            Equipment
+          </h3>
+          <EquipmentIdentifiedCard
+            content={equipmentMsg.content}
+            metadata={parseMetadata(equipmentMsg.metadata)}
+          />
+        </div>
+      ) : hasEquipment ? (
         <div className="rounded-xl border border-green-200 bg-green-50/60 p-3.5 space-y-2">
           <div className="flex items-center gap-2">
             <Cpu className="h-4 w-4 text-green-600" />
@@ -459,40 +481,88 @@ function ContextPanelContent({
               Identified Equipment
             </span>
           </div>
-          {session.manufacturer && (
-            <span className="inline-flex items-center rounded-md bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700">
-              {session.manufacturer}
-            </span>
-          )}
           <p className="text-sm font-bold text-slate-900">{session.modelNumber}</p>
-          {session.modelDescription && (
-            <p className="text-xs text-slate-600">{session.modelDescription}</p>
-          )}
           {session.serialNumber && (
-            <p className="text-xs text-slate-500 font-mono">
-              S/N: {session.serialNumber}
-            </p>
+            <p className="text-xs text-slate-500 font-mono">S/N: {session.serialNumber}</p>
+          )}
+        </div>
+      ) : null}
+
+      {/* Bulletins — gated on equipment identified */}
+      {hasEquipment && bulletinMsgs.length > 0 && (
+        <div>
+          <button
+            onClick={() => setShowBulletins((v) => !v)}
+            className="flex w-full items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2"
+          >
+            <span className="flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+              Bulletins
+              <span className="ml-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 normal-case tracking-normal">
+                {bulletinMsgs.length}
+              </span>
+            </span>
+            {showBulletins ? (
+              <ChevronUp className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5" />
+            )}
+          </button>
+          {showBulletins && (
+            <div className="space-y-2">
+              {bulletinMsgs.map((msg) => (
+                <BulletinAlertCard
+                  key={msg.id}
+                  content={msg.content}
+                  metadata={parseMetadata(msg.metadata)}
+                />
+              ))}
+            </div>
           )}
         </div>
       )}
 
-      {/* Quick Stats */}
-      {session.equipmentModelId && (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-center">
-            <AlertTriangle className="mx-auto h-4 w-4 text-amber-500 mb-1" />
-            <p className="text-lg font-bold text-slate-800">{bulletinsCount}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">
-              Bulletins
-            </p>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-center">
-            <Wrench className="mx-auto h-4 w-4 text-blue-500 mb-1" />
-            <p className="text-lg font-bold text-slate-800">{partsCount}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">
+      {/* Parts — gated on equipment identified */}
+      {hasEquipment && partsMsgs.length > 0 && (
+        <div>
+          <button
+            onClick={() => setShowParts((v) => !v)}
+            className="flex w-full items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2"
+          >
+            <span className="flex items-center gap-1.5">
+              <Package className="h-3.5 w-3.5 text-blue-500" />
               Parts
-            </p>
-          </div>
+              <span className="ml-1 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 normal-case tracking-normal">
+                {partsMsgs.length}
+              </span>
+            </span>
+            {showParts ? (
+              <ChevronUp className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5" />
+            )}
+          </button>
+          {showParts && (
+            <div className="space-y-2">
+              {partsMsgs.map((msg) => (
+                <PartsInfoCard
+                  key={msg.id}
+                  content={msg.content}
+                  metadata={parseMetadata(msg.metadata)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* "Identify equipment first" hint */}
+      {!hasEquipment && (
+        <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-center">
+          <Cpu className="mx-auto h-5 w-5 text-slate-300 mb-1.5" />
+          <p className="text-xs text-slate-400">
+            Identify equipment to see bulletins and parts
+          </p>
         </div>
       )}
 
@@ -505,7 +575,6 @@ function ContextPanelContent({
           <div className="space-y-0">
             {events.map((evt, i) => (
               <div key={i} className="flex gap-3">
-                {/* Timeline line */}
                 <div className="flex flex-col items-center">
                   <div className={clsx(
                     "h-2 w-2 rounded-full mt-1.5 shrink-0",
@@ -520,7 +589,6 @@ function ContextPanelContent({
                     <div className="w-px flex-1 bg-slate-200 my-1" />
                   )}
                 </div>
-                {/* Event info */}
                 <div className="pb-3 min-w-0">
                   <p className="text-xs font-medium text-slate-700 leading-tight">
                     {evt.label}

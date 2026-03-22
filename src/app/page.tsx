@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   Wrench,
   Cpu,
-  Package,
   AlertTriangle,
   FileText,
   Phone,
@@ -125,37 +124,6 @@ export default async function Dashboard() {
         </section>
       )}
 
-      {/* Quick Access */}
-      <div className="grid grid-cols-3 gap-3">
-        <Link
-          href="/equipment"
-          className="card flex flex-col items-center justify-center gap-2 p-4 active:bg-slate-50 transition-colors"
-        >
-          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-            <Cpu className="w-6 h-6 text-blue-600" />
-          </div>
-          <span className="text-xs font-medium text-slate-700 text-center">Equipment Lookup</span>
-        </Link>
-        <Link
-          href="/parts"
-          className="card flex flex-col items-center justify-center gap-2 p-4 active:bg-slate-50 transition-colors"
-        >
-          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
-            <Package className="w-6 h-6 text-emerald-600" />
-          </div>
-          <span className="text-xs font-medium text-slate-700 text-center">Parts Search</span>
-        </Link>
-        <Link
-          href="/bulletins"
-          className="card flex flex-col items-center justify-center gap-2 p-4 active:bg-slate-50 transition-colors"
-        >
-          <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-            <AlertTriangle className="w-6 h-6 text-amber-600" />
-          </div>
-          <span className="text-xs font-medium text-slate-700 text-center">Bulletins</span>
-        </Link>
-      </div>
-
       {/* Demo Data Banner */}
       <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
         <div className="flex items-start gap-3">
@@ -163,10 +131,10 @@ export default async function Dashboard() {
           <div>
             <p className="text-sm font-medium text-amber-900">Demo Mode</p>
             <p className="text-xs text-amber-700 mt-1">
-              Try these model numbers:{' '}
-              <Link href="/equipment?q=24ANB636A003" className="font-mono underline">Carrier 24ANB636A003</Link>,{' '}
-              <Link href="/equipment?q=4TTR6036J1000A" className="font-mono underline">Trane 4TTR6036J1000A</Link>,{' '}
-              <Link href="/equipment?q=XC16-036-230" className="font-mono underline">Lennox XC16-036-230</Link>
+              Start a session and try typing:{' '}
+              <span className="font-mono">Carrier 24ANB636A003</span>,{' '}
+              <span className="font-mono">Trane 4TTR6036J1000A</span>,{' '}
+              <span className="font-mono">Heatcraft BEH030A6K</span>
             </p>
           </div>
         </div>

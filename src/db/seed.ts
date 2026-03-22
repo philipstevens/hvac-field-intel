@@ -482,6 +482,307 @@ const sessionMessagesData = [
   },
 ];
 
+// ── Refrigeration Data ─────────────────────────────────────
+const heatcraft = { id: uid(), name: 'Heatcraft', slug: 'heatcraft', country: 'US', createdAt: new Date().toISOString() };
+const heatcraftBohn = { id: uid(), manufacturerId: heatcraft.id, name: 'Bohn Walk-in Series', slug: 'bohn-walkin', category: 'refrigeration' };
+
+const refrModel = {
+  id: uid(),
+  productLineId: heatcraftBohn.id,
+  modelNumber: 'BEH030A6K',
+  modelNumberNormalized: 'BEH030A6K',
+  description: 'Bohn Walk-in Cooler Evaporator Unit 30K BTU',
+  refrigerantType: 'R-404A',
+  voltage: '208/230V',
+  btuRating: 30000,
+  seerRating: null,
+  region: '["US"]',
+  productionStart: '2018-03',
+  productionEnd: null,
+};
+
+const refrSerialRange = {
+  id: uid(),
+  modelId: refrModel.id,
+  serialPrefix: 'HC22',
+  serialStart: 'HC2200001',
+  serialEnd: 'HC2299999',
+  productionDateStart: '2022-01',
+  productionDateEnd: null,
+  factoryCode: 'NOR',
+  variant: 'Standard',
+  region: 'US',
+};
+
+const refrParts = [
+  { id: uid(), manufacturerId: heatcraft.id, partNumber: 'DH-1000W-BEH', partNumberNormalized: 'DH1000WBEH', description: 'Defrost Heater Assembly 1000W', category: 'heater', status: 'superseded' },
+  { id: uid(), manufacturerId: heatcraft.id, partNumber: 'DH-1200W-BEH', partNumberNormalized: 'DH1200WBEH', description: 'Defrost Heater Assembly 1200W (Current)', category: 'heater', status: 'active' },
+  { id: uid(), manufacturerId: heatcraft.id, partNumber: 'EFM-025-BEH', partNumberNormalized: 'EFM025BEH', description: 'Evaporator Fan Motor 1/4 HP 208/230V', category: 'fan_motor', status: 'active' },
+  { id: uid(), manufacturerId: heatcraft.id, partNumber: 'TMR-4C-015', partNumberNormalized: 'TMR4C015', description: 'Defrost Timer 4-Cycle Mechanical', category: 'control', status: 'superseded' },
+  { id: uid(), manufacturerId: heatcraft.id, partNumber: 'TMR-4C-020E', partNumberNormalized: 'TMR4C020E', description: 'Defrost Timer Electronic 4-Cycle (Current)', category: 'control', status: 'active' },
+  { id: uid(), manufacturerId: heatcraft.id, partNumber: 'GSK-9684-CL', partNumberNormalized: 'GSK9684CL', description: 'Door Gasket 96"x84" Cam-Lock', category: 'gasket', status: 'active' },
+];
+
+const refrSupersessions = [
+  // Defrost heater: DH-1000W-BEH → DH-1200W-BEH
+  { id: uid(), oldPartId: refrParts[0].id, newPartId: refrParts[1].id, supersessionDate: '2022-06', installationNotes: 'Upgraded wattage for improved defrost performance. Direct replacement.', sourceBulletinId: null },
+  // Defrost timer: TMR-4C-015 → TMR-4C-020E
+  { id: uid(), oldPartId: refrParts[3].id, newPartId: refrParts[4].id, supersessionDate: '2023-01', installationNotes: 'Electronic timer replaces mechanical. Set 4 defrost cycles 6:00/12:00/18:00/24:00. 45-min defrost duration.', sourceBulletinId: null },
+];
+
+const refrModelParts = [
+  { id: uid(), modelId: refrModel.id, partId: refrParts[1].id, quantity: 2, positionCode: 'DH1/DH2', isFieldReplaceable: true },
+  { id: uid(), modelId: refrModel.id, partId: refrParts[2].id, quantity: 3, positionCode: 'EFM1/EFM2/EFM3', isFieldReplaceable: true },
+  { id: uid(), modelId: refrModel.id, partId: refrParts[4].id, quantity: 1, positionCode: 'TD1', isFieldReplaceable: true },
+  { id: uid(), modelId: refrModel.id, partId: refrParts[5].id, quantity: 1, positionCode: 'GK1', isFieldReplaceable: true },
+];
+
+const refrBulletin = {
+  id: uid(),
+  manufacturerId: heatcraft.id,
+  bulletinNumber: 'HB-2023-019',
+  title: 'R-404A Phase-Out: R-448A Retrofit Advisory for BEH Series',
+  publicationDate: '2023-10-01',
+  severity: 'informational',
+  status: 'active',
+  supersededById: null,
+  contentSummary: 'R-404A is being phased out under EPA Section 608 regulations. BEH series units are fully compatible with R-448A (N-40) as a drop-in retrofit. No oil change required. Expect 5-8% capacity increase. Adjust TXV superheat to 8-10°F. Update unit nameplate after conversion.',
+};
+
+const refrBulletinApplicability = {
+  id: uid(),
+  bulletinId: refrBulletin.id,
+  modelId: refrModel.id,
+  serialRangeId: null,
+  appliesToAllSerials: true,
+  notes: null,
+};
+
+const refrManual = { id: uid(), modelId: refrModel.id, title: 'BEH Series Walk-in Evaporator Installation & Service Manual', manualType: 'service', sourceRef: 'HEATCRAFT-BEH-SVC' };
+const refrManualRevision = { id: uid(), manualId: refrManual.id, revisionCode: 'Rev B', publicationDate: '2023-10', isCurrent: true, changesSummary: 'Added R-448A retrofit procedures per HB-2023-019. Updated defrost timer programming for TMR-4C-020E.' };
+
+const refrSupplier = { id: uid(), name: 'North Texas Refrigeration Supply', type: 'distributor', city: 'Garland', state: 'TX', phone: '(972) 555-0610', lat: 32.9126, lng: -96.6389 };
+
+const refrInventory = [
+  { id: uid(), supplierId: refrSupplier.id, partId: refrParts[1].id, stockQuantity: 6, priceCents: 8900, leadTimeDays: 0, lastCheckedAt: now },
+  { id: uid(), supplierId: refrSupplier.id, partId: refrParts[2].id, stockQuantity: 4, priceCents: 15500, leadTimeDays: 0, lastCheckedAt: now },
+  { id: uid(), supplierId: refrSupplier.id, partId: refrParts[4].id, stockQuantity: 8, priceCents: 6200, leadTimeDays: 0, lastCheckedAt: now },
+  { id: uid(), supplierId: refrSupplier.id, partId: refrParts[5].id, stockQuantity: 3, priceCents: 11800, leadTimeDays: 1, lastCheckedAt: now },
+  { id: uid(), supplierId: suppliersData[1].id, partId: refrParts[4].id, stockQuantity: 5, priceCents: 6500, leadTimeDays: 0, lastCheckedAt: now },
+];
+
+const refrReport = {
+  id: uid(),
+  technicianName: 'Carlos Mendez',
+  modelId: refrModel.id,
+  serialNumber: 'HC2201A4321',
+  status: 'submitted',
+  arrivalCondition: JSON.stringify({
+    systemOperating: true,
+    errorCodes: [],
+    boxTempF: 48,
+    targetTempF: 35,
+    ambientTempF: 72,
+    evapCoilCondition: 'frosted_over',
+    defrostCycleStatus: 'stuck_on',
+    notes: 'Walk-in cooler running warm. Box at 48°F, target 35°F. Evaporator coil completely frosted. Defrost heater stuck energized.',
+  }),
+  diagnosis: JSON.stringify({
+    rootCause: 'defrost_timer_failure',
+    contributingFactors: ['age', 'mechanical_timer_failure'],
+    applicableBulletins: ['HB-2023-019'],
+    refrigerantType: 'R-404A',
+  }),
+  workPerformed: JSON.stringify([
+    { action: 'replaced', partNumber: 'TMR-4C-020E', description: 'Defrost Timer Electronic 4-Cycle', position: 'TD1', notes: 'Mechanical timer TMR-4C-015 stuck in defrost position. Replaced with electronic timer TMR-4C-020E per supersession. Programmed 4 cycles: 6:00/12:00/18:00/24:00, 45-min duration.' },
+    { action: 'inspected', partNumber: 'DH-1200W-BEH', description: 'Defrost Heater Assembly', position: 'DH1/DH2', notes: 'Heaters intact, no damage from extended run time. Checked resistance: 24Ω each, within spec.' },
+  ]),
+  measurementsPost: JSON.stringify({
+    boxTempF: 36,
+    targetTempF: 35,
+    suctionPsi: 34,
+    dischargePsi: 196,
+    superheatF: 9,
+    subcoolingF: 11,
+    evapCoilCondition: 'clear',
+    defrostCycleStatus: 'normal',
+    refrigerantType: 'R-404A',
+  }),
+  technicianNotes: 'Replaced defrost timer per supersession TMR-4C-015→TMR-4C-020E. Box cooled to 36°F within 90 minutes. Advised owner on R-448A retrofit option (HB-2023-019) — no immediate action required but plan for next R-404A service call.',
+  createdAt: '2024-11-12T10:30:00Z',
+  submittedAt: '2024-11-12T13:00:00Z',
+};
+
+const refrSession = {
+  id: uid(),
+  technicianName: 'Carlos Mendez',
+  status: 'active',
+  equipmentModelId: refrModel.id,
+  serialNumber: 'HC2201A4321',
+  siteAddress: '1840 Industrial Blvd, Mesquite, TX',
+  customerName: 'Arctic Freeze Storage',
+  reportId: null,
+  createdAt: '2024-11-12T09:45:00Z',
+  completedAt: null,
+};
+
+const refrSessionMessages = [
+  {
+    id: uid(),
+    sessionId: refrSession.id,
+    role: 'system',
+    messageType: 'text',
+    content: 'Session started. What equipment are you working on?',
+    metadata: null,
+    createdAt: '2024-11-12T09:45:00Z',
+  },
+  {
+    id: uid(),
+    sessionId: refrSession.id,
+    role: 'user',
+    messageType: 'text',
+    content: 'Heatcraft BEH030A6K serial HC2201A4321',
+    metadata: null,
+    createdAt: '2024-11-12T09:46:00Z',
+  },
+  {
+    id: uid(),
+    sessionId: refrSession.id,
+    role: 'system',
+    messageType: 'equipment_identified',
+    content: 'Equipment identified: Heatcraft Bohn Walk-in Cooler Evaporator Unit 30K BTU (BEH030A6K)',
+    metadata: JSON.stringify({
+      modelNumber: 'BEH030A6K',
+      description: 'Bohn Walk-in Cooler Evaporator Unit 30K BTU',
+      manufacturer: 'Heatcraft',
+      productLine: 'Bohn Walk-in Series',
+      refrigerantType: 'R-404A',
+      voltage: '208/230V',
+      btuRating: 30000,
+      seerRating: null,
+      serialNumber: 'HC2201A4321',
+      productionYear: '2022',
+      applicableBulletins: ['HB-2023-019'],
+    }),
+    createdAt: '2024-11-12T09:46:05Z',
+  },
+  {
+    id: uid(),
+    sessionId: refrSession.id,
+    role: 'system',
+    messageType: 'bulletin_alert',
+    content: 'R-404A Phase-Out Advisory (HB-2023-019): This unit uses R-404A, which is being phased out under EPA regulations. R-448A is a compatible drop-in retrofit — no oil change required.',
+    metadata: JSON.stringify({
+      bulletinNumber: 'HB-2023-019',
+      title: 'R-404A Phase-Out: R-448A Retrofit Advisory for BEH Series',
+      severity: 'informational',
+      publicationDate: '2023-10-01',
+      action: 'Plan R-448A (N-40) retrofit at next service. Adjust TXV superheat to 8-10°F after conversion. Update unit nameplate.',
+      contentSummary: 'R-404A is being phased out under EPA Section 608 regulations. BEH series units are fully compatible with R-448A (N-40) as a drop-in retrofit. No oil change required. Expect 5-8% capacity increase. Adjust TXV superheat to 8-10°F. Update unit nameplate after conversion.',
+    }),
+    createdAt: '2024-11-12T09:46:10Z',
+  },
+  {
+    id: uid(),
+    sessionId: refrSession.id,
+    role: 'user',
+    messageType: 'text',
+    content: "Box is running at 48F, supposed to be 35F. Evaporator coil is completely frosted over.",
+    metadata: null,
+    createdAt: '2024-11-12T09:52:00Z',
+  },
+  {
+    id: uid(),
+    sessionId: refrSession.id,
+    role: 'system',
+    messageType: 'suggestion',
+    content: 'Warm box temp with a frosted evaporator coil points to a defrost system problem. The coil can\'t transfer heat when encased in ice. Check these in order:',
+    metadata: JSON.stringify({
+      symptoms: ['high box temp', 'frosted evap coil', 'R-404A system'],
+      suggestedChecks: [
+        { component: 'defrost timer', priority: 1, reason: 'Most common cause — check if timer is stuck in defrost or if defrost isn\'t initiating. Mechanical timers (TMR-4C-015) are prone to failure.', partNumber: 'TMR-4C-015' },
+        { component: 'defrost heaters', priority: 2, reason: 'Check heater resistance (spec: ~24Ω each). If timer is OK, heaters may not be energizing.', partNumber: 'DH-1200W-BEH' },
+        { component: 'defrost termination thermostat', priority: 3, reason: 'If thermostat is stuck open, defrost will never complete and coil will frost over between cycles.', partNumber: null },
+        { component: 'evap fan motors', priority: 4, reason: 'If fans run during defrost, they blow warm air across coil unevenly. Confirm fan delay is working correctly.', partNumber: 'EFM-025-BEH' },
+      ],
+    }),
+    createdAt: '2024-11-12T09:52:05Z',
+  },
+  {
+    id: uid(),
+    sessionId: refrSession.id,
+    role: 'user',
+    messageType: 'text',
+    content: "Checked the defrost timer — it's stuck in the defrost position. Mechanical timer TMR-4C-015. What's the current part?",
+    metadata: null,
+    createdAt: '2024-11-12T10:05:00Z',
+  },
+  {
+    id: uid(),
+    sessionId: refrSession.id,
+    role: 'system',
+    messageType: 'parts_info',
+    content: 'Current defrost timer: TMR-4C-020E (Electronic). Supersedes mechanical TMR-4C-015. Electronic timer is more reliable and eliminates mechanical failure points.',
+    metadata: JSON.stringify({
+      currentPart: {
+        partNumber: 'TMR-4C-020E',
+        description: 'Defrost Timer Electronic 4-Cycle (Current)',
+        category: 'control',
+        status: 'active',
+      },
+      supersessionChain: [
+        { partNumber: 'TMR-4C-015', status: 'superseded', supersededDate: '2023-01', notes: 'Mechanical timer. Known failure mode: timer motor seizes or sticks in defrost position.' },
+        { partNumber: 'TMR-4C-020E', status: 'active', supersededDate: null, notes: 'Electronic replacement. Program 4 cycles: 6:00/12:00/18:00/24:00, 45-min duration.' },
+      ],
+      positionCode: 'TD1',
+    }),
+    createdAt: '2024-11-12T10:05:05Z',
+  },
+  {
+    id: uid(),
+    sessionId: refrSession.id,
+    role: 'user',
+    messageType: 'text',
+    content: 'Replacing defrost timer with TMR-4C-020E. Box is at 48F, suction 34 PSI, discharge 196 PSI, superheat 9F.',
+    metadata: null,
+    createdAt: '2024-11-12T10:25:00Z',
+  },
+  {
+    id: uid(),
+    sessionId: refrSession.id,
+    role: 'system',
+    messageType: 'measurement',
+    content: 'Measurements recorded — R-404A suction 34 PSI / discharge 196 PSI / superheat 9°F. Pressures look normal for 35°F box target with R-404A. Box temp 48°F consistent with frost-blocked coil.',
+    metadata: JSON.stringify({
+      refrigerant: 'R-404A',
+      boxTempF: 48,
+      targetTempF: 35,
+      suctionPsi: 34,
+      dischargePsi: 196,
+      superheatF: 9,
+    }),
+    createdAt: '2024-11-12T10:25:05Z',
+  },
+  {
+    id: uid(),
+    sessionId: refrSession.id,
+    role: 'system',
+    messageType: 'report_generated',
+    content: 'Service report drafted: defrost timer failure (TMR-4C-015 stuck in defrost position), replaced with electronic TMR-4C-020E. R-404A system pressures normal. Box should return to 35°F target as frost clears.',
+    metadata: JSON.stringify({
+      sessionId: refrSession.id,
+      summary: {
+        equipment: 'Heatcraft BEH030A6K',
+        complaint: 'Box temp 48°F (target 35°F), frosted evap coil',
+        rootCause: 'Defrost timer failure — mechanical timer stuck in defrost position',
+        partsReplaced: 'TMR-4C-020E (supersedes TMR-4C-015)',
+      },
+      missingFields: [],
+    }),
+    createdAt: '2024-11-12T10:25:10Z',
+  },
+];
+
 // ── Seed Execution ─────────────────────────────────────────
 async function seed() {
   console.log('Seeding database...');
@@ -492,55 +793,55 @@ async function seed() {
     await client.execute(`DELETE FROM ${table}`);
   }
 
-  await db.insert(schema.manufacturers).values([carrier, trane, lennox]);
+  await db.insert(schema.manufacturers).values([carrier, trane, lennox, heatcraft]);
   console.log('  ✓ Manufacturers');
 
-  await db.insert(schema.productLines).values([carrierInfinity, carrierPerformance, traneXR, traneS9, lennoxXC, lennoxSL]);
+  await db.insert(schema.productLines).values([carrierInfinity, carrierPerformance, traneXR, traneS9, lennoxXC, lennoxSL, heatcraftBohn]);
   console.log('  ✓ Product Lines');
 
-  await db.insert(schema.models).values(modelData);
+  await db.insert(schema.models).values([...modelData, refrModel]);
   console.log('  ✓ Models');
 
-  await db.insert(schema.serialRanges).values(serialRangeData);
+  await db.insert(schema.serialRanges).values([...serialRangeData, refrSerialRange]);
   console.log('  ✓ Serial Ranges');
 
-  await db.insert(schema.parts).values(partsData);
+  await db.insert(schema.parts).values([...partsData, ...refrParts]);
   console.log('  ✓ Parts');
 
-  await db.insert(schema.partSupersessions).values(supersessionData);
+  await db.insert(schema.partSupersessions).values([...supersessionData, ...refrSupersessions]);
   console.log('  ✓ Part Supersessions');
 
-  await db.insert(schema.modelParts).values(modelPartsData);
+  await db.insert(schema.modelParts).values([...modelPartsData, ...refrModelParts]);
   console.log('  ✓ Model-Part Relationships');
 
-  await db.insert(schema.bulletins).values(bulletinData);
+  await db.insert(schema.bulletins).values([...bulletinData, refrBulletin]);
   console.log('  ✓ Bulletins');
 
-  await db.insert(schema.bulletinApplicability).values(bulletinApplicabilityData);
+  await db.insert(schema.bulletinApplicability).values([...bulletinApplicabilityData, refrBulletinApplicability]);
   console.log('  ✓ Bulletin Applicability');
 
-  await db.insert(schema.manuals).values(manualsData);
+  await db.insert(schema.manuals).values([...manualsData, refrManual]);
   console.log('  ✓ Manuals');
 
-  await db.insert(schema.manualRevisions).values(manualRevisionsData);
+  await db.insert(schema.manualRevisions).values([...manualRevisionsData, refrManualRevision]);
   console.log('  ✓ Manual Revisions');
 
-  await db.insert(schema.suppliers).values(suppliersData);
+  await db.insert(schema.suppliers).values([...suppliersData, refrSupplier]);
   console.log('  ✓ Suppliers');
 
-  await db.insert(schema.supplierInventory).values(supplierInventoryData);
+  await db.insert(schema.supplierInventory).values([...supplierInventoryData, ...refrInventory]);
   console.log('  ✓ Supplier Inventory');
 
-  await db.insert(schema.serviceReports).values(reportsData);
+  await db.insert(schema.serviceReports).values([...reportsData, refrReport]);
   console.log('  ✓ Service Reports');
 
   await db.insert(schema.analyticsEvents).values(analyticsData);
   console.log('  ✓ Analytics Events');
 
-  await db.insert(schema.sessions).values(sessionsData);
+  await db.insert(schema.sessions).values([...sessionsData, refrSession]);
   console.log('  ✓ Sessions');
 
-  await db.insert(schema.sessionMessages).values(sessionMessagesData);
+  await db.insert(schema.sessionMessages).values([...sessionMessagesData, ...refrSessionMessages]);
   console.log('  ✓ Session Messages');
 
   console.log('\nDone! Database seeded successfully.');

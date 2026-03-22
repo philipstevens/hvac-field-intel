@@ -60,7 +60,7 @@ function parseMetadata(metadata: string | null): Record<string, any> {
   }
 }
 
-function EquipmentIdentifiedCard({ content, metadata }: { content: string; metadata: Record<string, any> }) {
+export function EquipmentIdentifiedCard({ content, metadata }: { content: string; metadata: Record<string, any> }) {
   // Support both flat metadata and nested { equipment: {...} } from the engine
   const equip = metadata.equipment || metadata;
 
@@ -189,7 +189,7 @@ function SingleBulletinCard({ bulletin, content }: { bulletin: Record<string, an
   );
 }
 
-function BulletinAlertCard({ content, metadata }: { content: string; metadata: Record<string, any> }) {
+export function BulletinAlertCard({ content, metadata }: { content: string; metadata: Record<string, any> }) {
   // Handle both single bulletin metadata and { bulletins: [...] } array from engine
   if (metadata.bulletins && Array.isArray(metadata.bulletins) && metadata.bulletins.length > 0) {
     return (
@@ -246,7 +246,7 @@ function SinglePartCard({ part }: { part: any }) {
   );
 }
 
-function PartsInfoCard({ content, metadata }: { content: string; metadata: Record<string, any> }) {
+export function PartsInfoCard({ content, metadata }: { content: string; metadata: Record<string, any> }) {
   // Support multiple formats:
   // 1. Seed data: { currentPart: {...}, supersessionChain: [...] }
   // 2. Engine data: { parts: [...] } or { inventory: [...] }
