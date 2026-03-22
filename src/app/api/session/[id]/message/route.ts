@@ -23,6 +23,13 @@ export async function POST(
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
+    if (session.isDemo) {
+      return NextResponse.json(
+        { error: 'Demo sessions are read-only' },
+        { status: 403 }
+      );
+    }
+
     if (session.status !== 'active') {
       return NextResponse.json(
         { error: 'Session is not active' },

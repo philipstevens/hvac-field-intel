@@ -12,6 +12,7 @@ import {
   ChevronRight,
   X,
   Loader2,
+  Lock,
 } from "lucide-react";
 import clsx from "clsx";
 import { formatRelativeTime } from "@/components/chat-message";
@@ -26,6 +27,7 @@ interface Session {
   customerName: string | null;
   createdAt: string;
   completedAt: string | null;
+  isDemo?: boolean | null;
   modelNumber?: string | null;
   modelDescription?: string | null;
   manufacturer?: string | null;
@@ -89,8 +91,10 @@ export default function SessionListPage() {
     }
   };
 
-  const activeSessions = sessions.filter((s) => s.status === "active");
-  const completedSessions = sessions.filter((s) => s.status !== "active");
+  const demoSessions = sessions.filter((s) => s.isDemo);
+  const mySessions = sessions.filter((s) => !s.isDemo);
+  const myActiveSessions = mySessions.filter((s) => s.status === "active");
+  const myCompletedSessions = mySessions.filter((s) => s.status !== "active");
 
   const statusConfig = {
     active: { label: "Active", className: "bg-green-100 text-green-700", pulse: true },
@@ -105,7 +109,7 @@ export default function SessionListPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Service Sessions</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            {activeSessions.length} active session{activeSessions.length !== 1 ? "s" : ""}
+            {myActiveSessions.length} active session{myActiveSessions.length !== 1 ? "s" : ""}
           </p>
         </div>
         <button
@@ -205,27 +209,27 @@ export default function SessionListPage() {
         </div>
       )}
 
-      {/* Empty state */}
-      {!loading && sessions.length === 0 && !showForm && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 mb-4">
-            <MessageSquare className="h-8 w-8 text-slate-400" />
+      {/* Empty state — only if user has no own sessions */}
+      {!loading && mySessions.length === 0 && !showForm && (
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 mb-3">
+            <MessageSquare className="h-7 w-7 text-slate-400" />
           </div>
-          <p className="text-lg font-semibold text-slate-700">No sessions yet</p>
+          <p className="text-base font-semibold text-slate-700">No sessions yet</p>
           <p className="text-sm text-slate-500 mt-1 max-w-xs">
-            Start a new session to begin identifying equipment, checking bulletins, and generating reports.
+            Start a new session or browse the demo sessions below.
           </p>
         </div>
       )}
 
-      {/* Active Sessions */}
-      {!loading && activeSessions.length > 0 && (
+      {/* My Active Sessions */}
+      {!loading && myActiveSessions.length > 0 && (
         <div className="mb-6">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">
             Active Sessions
           </h2>
           <div className="space-y-3">
-            {activeSessions.map((session) => (
+            {myActiveSessions.map((session) => (
               <SessionCard
                 key={session.id}
                 session={session}
@@ -237,18 +241,40 @@ export default function SessionListPage() {
         </div>
       )}
 
-      {/* Completed / Archived Sessions */}
-      {!loading && completedSessions.length > 0 && (
-        <div>
+      {/* My Completed Sessions */}
+      {!loading && myCompletedSessions.length > 0 && (
+        <div className="mb-6">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">
             Previous Sessions
           </h2>
           <div className="space-y-3">
-            {completedSessions.map((session) => (
+            {myCompletedSessions.map((session) => (
               <SessionCard
                 key={session.id}
                 session={session}
                 config={statusConfig[session.status]}
+                onClick={() => router.push(`/session/${session.id}`)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Demo Sessions */}
+      {!loading && demoSessions.length > 0 && (
+        <div>
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 px-1">
+            Demo Sessions
+          </h2>
+          <p className="text-[11px] text-slate-400 mb-3 px-1">
+            Read-only examples showing the full session flow
+          </p>
+          <div className="space-y-3">
+            {demoSessions.map((session) => (
+              <SessionCard
+                key={session.id}
+                session={session}
+                config={statusConfig[session.status] ?? statusConfig.active}
                 onClick={() => router.push(`/session/${session.id}`)}
               />
             ))}
@@ -284,6 +310,12 @@ function SessionCard({ session, config, onClick }: SessionCardProps) {
               )}
               {config.label}
             </span>
+            {session.isDemo && (
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-600">
+                <Lock className="h-2.5 w-2.5" />
+                Demo
+              </span>
+            )}
             <span className="flex items-center gap-1 text-sm font-medium text-slate-800 truncate">
               <User className="h-3.5 w-3.5 text-slate-400 shrink-0" />
               {session.technicianName}

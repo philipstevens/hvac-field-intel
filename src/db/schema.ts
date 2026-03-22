@@ -175,6 +175,8 @@ export const sessions = sqliteTable('sessions', {
   reportId: text('report_id').references(() => serviceReports.id),
   createdAt: text('created_at').notNull(),
   completedAt: text('completed_at'),
+  isDemo: integer('is_demo', { mode: 'boolean' }).default(false),
+  visitorId: text('visitor_id'),
 });
 
 export const sessionMessages = sqliteTable('session_messages', {

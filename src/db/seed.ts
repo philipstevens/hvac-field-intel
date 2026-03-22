@@ -294,6 +294,8 @@ const sessionsData = [
     reportId: null,
     createdAt: '2024-07-15T14:00:00Z',
     completedAt: null,
+    isDemo: true,
+    visitorId: null,
   },
   {
     id: uid(),
@@ -306,6 +308,8 @@ const sessionsData = [
     reportId: reportsData[1].id,
     createdAt: '2024-02-20T09:00:00Z',
     completedAt: '2024-02-20T11:30:00Z',
+    isDemo: true,
+    visitorId: null,
   },
 ];
 
@@ -624,6 +628,8 @@ const refrSession = {
   reportId: null,
   createdAt: '2024-11-12T09:45:00Z',
   completedAt: null,
+  isDemo: true,
+  visitorId: null,
 };
 
 const refrSessionMessages = [

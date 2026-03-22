@@ -16,6 +16,7 @@ import {
   Clock,
   MessageSquare,
   Package,
+  Lock,
 } from "lucide-react";
 import clsx from "clsx";
 import { ChatMessage, EquipmentIdentifiedCard, BulletinAlertCard, PartsInfoCard, formatRelativeTime } from "@/components/chat-message";
@@ -34,6 +35,7 @@ interface SessionDetails {
     reportId: string | null;
     createdAt: string;
     completedAt: string | null;
+    isDemo?: boolean | null;
     modelNumber?: string | null;
     modelDescription?: string | null;
     refrigerantType?: string | null;
@@ -128,6 +130,8 @@ export default function SessionWorkspacePage() {
       return () => clearTimeout(timer);
     }
   }, [newMessageIds]);
+
+  const isDemo = !!sessionDetails?.session?.isDemo;
 
   // Determine quick action suggestions
   const hasEquipment = sessionDetails?.session?.equipmentModelId != null;
@@ -240,7 +244,13 @@ export default function SessionWorkspacePage() {
               {session?.modelNumber && ` \u00b7 ${session.modelNumber}`}
             </p>
           </div>
-          {session?.status === "active" && (
+          {isDemo && (
+            <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+              <Lock className="h-2.5 w-2.5" />
+              Demo
+            </span>
+          )}
+          {!isDemo && session?.status === "active" && (
             <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
@@ -337,12 +347,29 @@ export default function SessionWorkspacePage() {
 
         {/* Quick Actions + Input */}
         <div className="sticky bottom-0 border-t border-slate-200 bg-slate-50 safe-bottom">
-          {/* Quick Action Chips */}
-          <QuickActions
-            suggestions={quickSuggestions}
-            onSelect={handleChipSelect}
-            disabled={sending}
-          />
+          {/* Demo read-only banner */}
+          {isDemo ? (
+            <div className="flex items-center justify-between gap-3 border-b border-amber-100 bg-amber-50 px-4 py-2.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                <span className="text-xs text-amber-700 font-medium">
+                  Demo session — read only
+                </span>
+              </div>
+              <a
+                href="/session/new"
+                className="shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+              >
+                Start my own
+              </a>
+            </div>
+          ) : (
+            <QuickActions
+              suggestions={quickSuggestions}
+              onSelect={handleChipSelect}
+              disabled={sending}
+            />
+          )}
 
           {/* Input */}
           <form
@@ -354,16 +381,16 @@ export default function SessionWorkspacePage() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about equipment, parts, bulletins..."
-              disabled={sending || session?.status !== "active"}
+              placeholder={isDemo ? "Demo session — start your own to try it" : "Ask about equipment, parts, bulletins..."}
+              disabled={isDemo || sending || session?.status !== "active"}
               className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:opacity-50 disabled:bg-slate-100"
             />
             <button
               type="submit"
-              disabled={!input.trim() || sending || session?.status !== "active"}
+              disabled={isDemo || !input.trim() || sending || session?.status !== "active"}
               className={clsx(
                 "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all",
-                input.trim() && !sending
+                !isDemo && input.trim() && !sending
                   ? "bg-blue-600 text-white shadow-md shadow-blue-200 hover:bg-blue-700 active:scale-95"
                   : "bg-slate-200 text-slate-400"
               )}

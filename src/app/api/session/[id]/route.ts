@@ -32,6 +32,7 @@ export async function GET(
         reportId: sessions.reportId,
         createdAt: sessions.createdAt,
         completedAt: sessions.completedAt,
+        isDemo: sessions.isDemo,
         modelNumber: models.modelNumber,
         modelDescription: models.description,
         refrigerantType: models.refrigerantType,
@@ -126,6 +127,10 @@ export async function PATCH(
 
     if (!existing) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    }
+
+    if (existing.isDemo) {
+      return NextResponse.json({ error: 'Demo sessions are read-only' }, { status: 403 });
     }
 
     const body = await request.json();

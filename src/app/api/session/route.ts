@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { sessions, sessionMessages, models, productLines, manufacturers } from '@/db/schema';
-import { eq, desc, like, and, ne, sql } from 'drizzle-orm';
+import { eq, desc, like, and, ne, or, isNull, sql } from 'drizzle-orm';
 import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const visitorId = request.cookies.get('visitor_id')?.value ?? crypto.randomUUID();
     const sessionId = crypto.randomUUID();
     const messageId = crypto.randomUUID();
     const now = new Date().toISOString();
@@ -30,6 +31,8 @@ export async function POST(request: NextRequest) {
       reportId: null,
       createdAt: now,
       completedAt: null,
+      isDemo: false,
+      visitorId,
     };
 
     await db.insert(sessions).values(session);
@@ -130,8 +133,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const visitorId = request.cookies.get('visitor_id')?.value;
+
     const allSessions = await db
       .select({
         id: sessions.id,
@@ -143,6 +148,7 @@ export async function GET() {
         customerName: sessions.customerName,
         createdAt: sessions.createdAt,
         completedAt: sessions.completedAt,
+        isDemo: sessions.isDemo,
         modelNumber: models.modelNumber,
         modelDescription: models.description,
         manufacturer: manufacturers.name,
@@ -153,6 +159,12 @@ export async function GET() {
       .leftJoin(models, eq(sessions.equipmentModelId, models.id))
       .leftJoin(productLines, eq(models.productLineId, productLines.id))
       .leftJoin(manufacturers, eq(productLines.manufacturerId, manufacturers.id))
+      .where(
+        or(
+          eq(sessions.isDemo, true),
+          visitorId ? eq(sessions.visitorId, visitorId) : isNull(sessions.visitorId)
+        )
+      )
       .orderBy(desc(sessions.createdAt));
 
     return NextResponse.json(allSessions);
