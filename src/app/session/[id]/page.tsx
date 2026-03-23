@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -18,7 +18,7 @@ import {
   Lock,
 } from "lucide-react";
 import clsx from "clsx";
-import { ChatMessage, EquipmentIdentifiedCard, BulletinAlertCard, PartsInfoCard, formatRelativeTime } from "@/components/chat-message";
+import { ChatMessage, EquipmentIdentifiedCard, BulletinAlertCard, PartsInfoCard, formatRelativeTime, parseMetadata } from "@/components/chat-message";
 import type { Message } from "@/components/chat-message";
 import { QuickActions } from "@/components/quick-actions";
 
@@ -128,8 +128,8 @@ export default function SessionWorkspacePage() {
   const isDemo = !!sessionDetails?.session?.isDemo;
 
   const hasEquipment = sessionDetails?.session?.equipmentModelId != null;
-  const hasDiagnostic = messages.some((m) => m.messageType === "suggestion");
-  const hasReport = messages.some((m) => m.messageType === "report_generated");
+  const hasDiagnostic = useMemo(() => messages.some((m) => m.messageType === "suggestion"), [messages]);
+  const hasReport = useMemo(() => messages.some((m) => m.messageType === "report_generated"), [messages]);
 
   let quickSuggestions: string[];
   if (!hasEquipment) {
@@ -192,10 +192,6 @@ export default function SessionWorkspacePage() {
     sendMessage(input);
   };
 
-  const handleChipSelect = (text: string) => {
-    sendMessage(text);
-  };
-
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-field-bg">
@@ -208,9 +204,6 @@ export default function SessionWorkspacePage() {
 
   return (
     <div className="flex h-screen flex-col bg-field-bg lg:flex-row">
-      {/* ==================== */}
-      {/* CHAT PANEL           */}
-      {/* ==================== */}
       <div className="flex flex-1 flex-col min-h-0 lg:border-r lg:border-field-border">
         {/* Chat Header */}
         <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-field-border bg-field-surface/95 backdrop-blur-sm px-4 py-3">
@@ -283,8 +276,6 @@ export default function SessionWorkspacePage() {
             <div className="border-b border-field-border bg-field-surface px-4 py-4">
               <ContextPanelContent
                 session={session}
-                bulletinsCount={sessionDetails?.bulletins?.length || 0}
-                partsCount={sessionDetails?.parts?.length || 0}
                 messages={messages}
               />
             </div>
@@ -356,7 +347,7 @@ export default function SessionWorkspacePage() {
           ) : (
             <QuickActions
               suggestions={quickSuggestions}
-              onSelect={handleChipSelect}
+              onSelect={sendMessage}
               disabled={sending}
             />
           )}
@@ -400,17 +391,12 @@ export default function SessionWorkspacePage() {
         </div>
       </div>
 
-      {/* ==================== */}
-      {/* CONTEXT PANEL (Desktop Sidebar) */}
-      {/* ==================== */}
       <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col overflow-y-auto bg-field-surface border-l border-field-border p-5">
         <h2 className="font-bc text-sm font-bold uppercase tracking-wider text-field-muted mb-4">
           Session Context
         </h2>
         <ContextPanelContent
           session={session}
-          bulletinsCount={sessionDetails?.bulletins?.length || 0}
-          partsCount={sessionDetails?.parts?.length || 0}
           messages={messages}
         />
       </div>
@@ -424,40 +410,32 @@ export default function SessionWorkspacePage() {
 
 interface ContextPanelContentProps {
   session: SessionDetails["session"] | undefined;
-  bulletinsCount: number;
-  partsCount: number;
   messages: Message[];
 }
 
-function ContextPanelContent({
-  session,
-  bulletinsCount: _bulletinsCount,
-  partsCount: _partsCount,
-  messages,
-}: ContextPanelContentProps) {
+function ContextPanelContent({ session, messages }: ContextPanelContentProps) {
   const [showBulletins, setShowBulletins] = useState(false);
   const [showParts, setShowParts] = useState(false);
+
+  const { equipmentMsg, bulletinMsgs, partsMsgs, events } = useMemo(() => {
+    let lastEquipment: Message | undefined;
+    const bulletins: Message[] = [];
+    const parts: Message[] = [];
+    const evts: { type: string; time: string; label: string }[] = [];
+    for (const m of messages) {
+      if (m.messageType === "equipment_identified") lastEquipment = m;
+      else if (m.messageType === "bulletin_alert") bulletins.push(m);
+      else if (m.messageType === "parts_info") parts.push(m);
+      if (m.role === "system" && m.messageType !== "text") {
+        evts.push({ type: m.messageType, time: m.createdAt, label: getEventLabel(m.messageType) });
+      }
+    }
+    return { equipmentMsg: lastEquipment, bulletinMsgs: bulletins, partsMsgs: parts, events: evts };
+  }, [messages]);
 
   if (!session) return null;
 
   const hasEquipment = !!session.equipmentModelId;
-
-  const equipmentMsg = messages.filter((m) => m.messageType === "equipment_identified").at(-1);
-  const bulletinMsgs = messages.filter((m) => m.messageType === "bulletin_alert");
-  const partsMsgs = messages.filter((m) => m.messageType === "parts_info");
-
-  function parseMetadata(metadata: string | null): Record<string, any> {
-    if (!metadata) return {};
-    try { return JSON.parse(metadata); } catch { return {}; }
-  }
-
-  const events = messages
-    .filter((m) => m.role === "system" && m.messageType !== "text")
-    .map((m) => ({
-      type: m.messageType,
-      time: m.createdAt,
-      label: getEventLabel(m.messageType),
-    }));
 
   return (
     <div className="space-y-5">

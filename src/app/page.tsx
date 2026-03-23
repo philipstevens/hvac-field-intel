@@ -51,7 +51,6 @@ export default async function Dashboard() {
 
   return (
     <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between pt-1">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-field-accent/10 border border-field-accent/20">
@@ -66,7 +65,6 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      {/* Primary CTA — Start Service Call */}
       <Link href="/session" className="group block active:scale-[0.985] transition-transform">
         <div className="relative overflow-hidden rounded-2xl shadow-lg shadow-field-accent/15">
           {/* gradient base */}
@@ -104,7 +102,6 @@ export default async function Dashboard() {
         </p>
       )}
 
-      {/* Active Sessions */}
       {activeSessions.length > 0 && (
         <section>
           <h2 className="flex items-center gap-2 text-[11px] font-semibold text-field-muted uppercase tracking-wider mb-3 px-0.5">
@@ -156,7 +153,6 @@ export default async function Dashboard() {
         </section>
       )}
 
-      {/* Demo Data Banner */}
       <div className="rounded-xl border border-field-amber/20 bg-field-amber/5 p-4">
         <div className="flex items-start gap-3">
           <Lightbulb className="w-4 h-4 text-field-amber flex-shrink-0 mt-0.5" />
@@ -172,7 +168,6 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Row */}
       <div className="grid grid-cols-4 gap-2">
         {[
           { icon: Cpu, label: 'Models', value: equipmentCount.value },
@@ -188,7 +183,6 @@ export default async function Dashboard() {
         ))}
       </div>
 
-      {/* Recent Activity */}
       {recentCompleted.length > 0 && (
         <section>
           <h2 className="flex items-center gap-2 text-[11px] font-semibold text-field-muted uppercase tracking-wider mb-3 px-0.5">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -91,10 +91,18 @@ export default function SessionListPage() {
     }
   };
 
-  const demoSessions = sessions.filter((s) => s.isDemo);
-  const mySessions = sessions.filter((s) => !s.isDemo);
-  const myActiveSessions = mySessions.filter((s) => s.status === "active");
-  const myCompletedSessions = mySessions.filter((s) => s.status !== "active");
+  const { demoSessions, myActiveSessions, myCompletedSessions } = useMemo(() => {
+    const demos: Session[] = [];
+    const active: Session[] = [];
+    const completed: Session[] = [];
+    for (const s of sessions) {
+      if (s.isDemo) demos.push(s);
+      else if (s.status === "active") active.push(s);
+      else completed.push(s);
+    }
+    return { demoSessions: demos, myActiveSessions: active, myCompletedSessions: completed };
+  }, [sessions]);
+  const mySessions = useMemo(() => sessions.filter((s) => !s.isDemo), [sessions]);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-5">
@@ -332,7 +340,7 @@ function SessionCard({ session, onClick }: SessionCardProps) {
                   ? "bg-field-blue/10 text-field-blue"
                   : "bg-field-border text-field-muted"
               )}>
-                {session.status === "completed" ? "Completed" : "Archived"}
+                {isCompleted ? "Completed" : "Archived"}
               </span>
             )}
             {session.isDemo && (

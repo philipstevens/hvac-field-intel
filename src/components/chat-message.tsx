@@ -51,7 +51,7 @@ export function formatRelativeTime(isoString: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function parseMetadata(metadata: string | null): Record<string, any> {
+export function parseMetadata(metadata: string | null): Record<string, any> {
   if (!metadata) return {};
   try {
     return JSON.parse(metadata);
@@ -64,7 +64,7 @@ export function EquipmentIdentifiedCard({ content, metadata }: { content: string
   const equip = metadata.equipment || metadata;
 
   return (
-    <div className="rounded-xl border border-field-green/25 bg-field-green/8 p-4 space-y-3" style={{ background: 'rgba(34,197,94,0.07)' }}>
+    <div className="rounded-xl border border-field-green/25 bg-field-green/[0.07] p-4 space-y-3">
       <div className="flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-field-green/15">
           <Cpu className="h-4 w-4 text-field-green" />
@@ -127,48 +127,45 @@ export function EquipmentIdentifiedCard({ content, metadata }: { content: string
   );
 }
 
+const SEVERITY_CONFIG = {
+  safety_critical: {
+    bgClass: "bg-field-red/[0.07]",
+    border: "border-field-red/25",
+    badgeClass: "bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full text-xs font-semibold",
+    icon: ShieldAlert,
+    iconColor: "text-field-red",
+    iconBg: "bg-red-500/15",
+    label: "Safety Critical",
+  },
+  warranty: {
+    bgClass: "bg-field-amber/[0.07]",
+    border: "border-field-amber/25",
+    badgeClass: "bg-amber-500/15 text-field-amber px-2 py-0.5 rounded-full text-xs font-semibold",
+    icon: AlertTriangle,
+    iconColor: "text-field-amber",
+    iconBg: "bg-amber-500/15",
+    label: "Warranty",
+  },
+  informational: {
+    bgClass: "bg-field-blue/[0.07]",
+    border: "border-field-blue/25",
+    badgeClass: "bg-blue-500/15 text-field-blue px-2 py-0.5 rounded-full text-xs font-semibold",
+    icon: Info,
+    iconColor: "text-field-blue",
+    iconBg: "bg-blue-500/15",
+    label: "Informational",
+  },
+} as const;
+
 function SingleBulletinCard({ bulletin, content }: { bulletin: Record<string, any>; content: string }) {
   const [expanded, setExpanded] = useState(false);
   const severity = bulletin.severity || "informational";
 
-  const severityConfig = {
-    safety_critical: {
-      bg: "rgba(239,68,68,0.07)",
-      border: "border-field-red/25",
-      badgeClass: "bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full text-xs font-semibold",
-      icon: ShieldAlert,
-      iconColor: "text-field-red",
-      iconBg: "bg-red-500/15",
-      label: "Safety Critical",
-      titleColor: "text-field-text",
-    },
-    warranty: {
-      bg: "rgba(245,158,11,0.07)",
-      border: "border-field-amber/25",
-      badgeClass: "bg-amber-500/15 text-field-amber px-2 py-0.5 rounded-full text-xs font-semibold",
-      icon: AlertTriangle,
-      iconColor: "text-field-amber",
-      iconBg: "bg-amber-500/15",
-      label: "Warranty",
-      titleColor: "text-field-text",
-    },
-    informational: {
-      bg: "rgba(59,130,246,0.07)",
-      border: "border-field-blue/25",
-      badgeClass: "bg-blue-500/15 text-field-blue px-2 py-0.5 rounded-full text-xs font-semibold",
-      icon: Info,
-      iconColor: "text-field-blue",
-      iconBg: "bg-blue-500/15",
-      label: "Informational",
-      titleColor: "text-field-text",
-    },
-  } as const;
-
-  const config = severityConfig[severity as keyof typeof severityConfig] || severityConfig.informational;
+  const config = SEVERITY_CONFIG[severity as keyof typeof SEVERITY_CONFIG] || SEVERITY_CONFIG.informational;
   const Icon = config.icon;
 
   return (
-    <div className={clsx("rounded-xl border p-4 space-y-3", config.border)} style={{ background: config.bg }}>
+    <div className={clsx("rounded-xl border p-4 space-y-3", config.border, config.bgClass)}>
       <div className="flex items-start gap-2">
         <div className={clsx("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", config.iconBg)}>
           <Icon className={clsx("h-4 w-4", config.iconColor)} />
@@ -180,7 +177,7 @@ function SingleBulletinCard({ bulletin, content }: { bulletin: Record<string, an
               <span className="text-xs text-field-muted font-mono">#{bulletin.bulletinNumber}</span>
             )}
           </div>
-          <p className={clsx("mt-1 text-sm font-semibold", config.titleColor)}>
+          <p className="mt-1 text-sm font-semibold text-field-text">
             {bulletin.title || content}
           </p>
         </div>
@@ -444,7 +441,7 @@ function SuggestionCard({ content, metadata }: { content: string; metadata: Reco
   };
 
   return (
-    <div className="rounded-xl border border-field-amber/25 p-4 space-y-3" style={{ background: 'rgba(245,158,11,0.07)' }}>
+    <div className="rounded-xl border border-field-amber/25 bg-field-amber/[0.07] p-4 space-y-3">
       <div className="flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/15">
           <Lightbulb className="h-4 w-4 text-field-amber" />
@@ -502,7 +499,7 @@ function SuggestionCard({ content, metadata }: { content: string; metadata: Reco
 
 function ReportGeneratedCard({ content, metadata, sessionId }: { content: string; metadata: Record<string, any>; sessionId?: string }) {
   return (
-    <div className="rounded-xl border border-field-blue/25 p-4 space-y-3" style={{ background: 'rgba(59,130,246,0.07)' }}>
+    <div className="rounded-xl border border-field-blue/25 bg-field-blue/[0.07] p-4 space-y-3">
       <div className="flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/15">
           <ClipboardList className="h-4 w-4 text-field-blue" />
@@ -544,7 +541,7 @@ function ReportGeneratedCard({ content, metadata, sessionId }: { content: string
 
 function MeasurementCard({ content }: { content: string; metadata: Record<string, any> }) {
   return (
-    <div className="rounded-xl border border-field-purple/25 p-4 space-y-2" style={{ background: 'rgba(168,85,247,0.07)' }}>
+    <div className="rounded-xl border border-field-purple/25 bg-field-purple/[0.07] p-4 space-y-2">
       <div className="flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/15">
           <Package className="h-4 w-4 text-field-purple" />
@@ -567,9 +564,6 @@ export function ChatMessage({ message, isNew = false, sessionId }: ChatMessagePr
         isUser ? "justify-end" : "justify-start",
         isNew && "animate-in"
       )}
-      style={isNew ? {
-        animation: "messageIn 0.3s ease-out forwards",
-      } : undefined}
     >
       <div className={clsx("max-w-[85%] lg:max-w-[70%]", isUser ? "items-end" : "items-start")}>
         {isUser ? (

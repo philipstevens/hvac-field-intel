@@ -23,12 +23,6 @@ const config: Config = {
           blue: '#3B82F6',
           purple: '#A855F7',
         },
-        brand: {
-          50: '#eff6ff',
-          500: '#3b82f6',
-          600: '#2563eb',
-          900: '#1e3a5f',
-        },
       },
       fontFamily: {
         barlow: ['var(--font-barlow)', 'system-ui', 'sans-serif'],

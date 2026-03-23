@@ -47,11 +47,7 @@ export function QuickActions({ suggestions, onSelect, disabled = false }: QuickA
       <div
         ref={scrollRef}
         className="flex gap-2 overflow-x-auto px-4 py-2.5 scrollbar-hide snap-x snap-mandatory"
-        style={{
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-          WebkitOverflowScrolling: "touch",
-        }}
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
         {suggestions.map((text, i) => {
           const Icon = getChipIcon(text);
