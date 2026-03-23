@@ -40,13 +40,13 @@ export function QuickActions({ suggestions, onSelect, disabled = false }: QuickA
   return (
     <div className="relative">
       {/* Left fade */}
-      <div className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-6 bg-gradient-to-r from-slate-50 to-transparent" />
+      <div className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-r from-field-bg to-transparent" />
       {/* Right fade */}
-      <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-6 bg-gradient-to-l from-slate-50 to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-field-bg to-transparent" />
 
       <div
         ref={scrollRef}
-        className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-hide snap-x snap-mandatory"
+        className="flex gap-2 overflow-x-auto px-4 py-2.5 scrollbar-hide snap-x snap-mandatory"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
@@ -61,14 +61,14 @@ export function QuickActions({ suggestions, onSelect, disabled = false }: QuickA
               onClick={() => onSelect(text)}
               disabled={disabled}
               className={clsx(
-                "flex shrink-0 snap-start items-center gap-1.5 rounded-full border border-slate-200",
-                "bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm",
-                "transition-all active:scale-95",
-                "hover:border-blue-300 hover:text-blue-700 hover:shadow-md",
+                "flex shrink-0 snap-start items-center gap-1.5 rounded-full border border-field-border",
+                "bg-field-surface2 px-3.5 py-2.5 text-sm font-medium text-field-muted-bright",
+                "transition-all active:scale-95 min-h-[44px]",
+                "hover:border-field-accent/50 hover:text-field-accent hover:bg-field-accent/5",
                 "disabled:opacity-40 disabled:cursor-not-allowed"
               )}
             >
-              <Icon className="h-3.5 w-3.5 text-slate-400" />
+              <Icon className="h-3.5 w-3.5 shrink-0" />
               <span className="whitespace-nowrap">{text}</span>
             </button>
           );

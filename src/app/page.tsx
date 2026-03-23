@@ -7,11 +7,11 @@ import {
   Cpu,
   AlertTriangle,
   FileText,
-  Phone,
   Lightbulb,
   Clock,
   ChevronRight,
   BarChart3,
+  Thermometer,
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -50,35 +50,56 @@ export default async function Dashboard() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Wrench className="w-6 h-6 text-blue-600" />
-          <h1 className="text-2xl font-bold text-slate-900">HVAC Field Intel</h1>
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-field-accent/10 border border-field-accent/20">
+            <Thermometer className="w-5 h-5 text-field-accent" />
+          </div>
+          <div>
+            <h1 className="font-bc text-xl font-bold uppercase tracking-wide text-field-text leading-none">
+              HVAC Field Intel
+            </h1>
+            <p className="text-[11px] text-field-muted mt-0.5">{today}</p>
+          </div>
         </div>
-        <p className="text-xs text-slate-400">{today}</p>
       </div>
 
       {/* Primary CTA — Start Service Call */}
-      <Link
-        href="/session"
-        className="block rounded-xl bg-blue-600 p-5 text-white shadow-lg active:bg-blue-700 transition-colors"
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
-            <Phone className="w-7 h-7 text-white" />
-          </div>
-          <div>
-            <p className="text-lg font-bold">Start Service Call</p>
-            <p className="text-sm text-blue-200 mt-0.5">
-              Identify equipment, check bulletins, document work
-            </p>
+      <Link href="/session" className="group block active:scale-[0.985] transition-transform">
+        <div className="relative overflow-hidden rounded-2xl shadow-lg shadow-field-accent/15">
+          {/* gradient base */}
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500 via-field-accent to-orange-700" />
+          {/* diagonal line texture */}
+          <div
+            className="absolute inset-0 opacity-[0.07]"
+            style={{
+              backgroundImage: 'repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)',
+              backgroundSize: '8px 8px',
+            }}
+          />
+          {/* top highlight */}
+          <div className="absolute inset-x-0 top-0 h-px bg-white/25" />
+          <div className="relative flex items-center gap-4 px-5 py-5">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-black/20 border border-white/10">
+              <Wrench className="h-7 w-7 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bc text-[22px] font-bold uppercase tracking-wider text-white leading-tight">
+                Start Service Call
+              </p>
+              <p className="text-[13px] text-orange-100/75 mt-0.5 truncate">
+                Identify equipment · Check bulletins · Document
+              </p>
+            </div>
+            <ChevronRight className="h-6 w-6 text-white/50 shrink-0 group-active:translate-x-0.5 transition-transform" />
           </div>
         </div>
       </Link>
+
       {activeSessions.length > 0 && (
-        <p className="text-xs text-slate-400 text-center -mt-3">
+        <p className="text-xs text-field-muted text-center -mt-2">
           or continue an active session below
         </p>
       )}
@@ -86,8 +107,8 @@ export default async function Dashboard() {
       {/* Active Sessions */}
       {activeSessions.length > 0 && (
         <section>
-          <h2 className="section-header flex items-center gap-2 mb-3">
-            <Clock className="w-4 h-4 text-blue-500" />
+          <h2 className="flex items-center gap-2 text-[11px] font-semibold text-field-muted uppercase tracking-wider mb-3 px-0.5">
+            <Clock className="w-3.5 h-3.5 text-field-green" />
             Active Sessions
           </h2>
           <div className="space-y-2">
@@ -96,27 +117,38 @@ export default async function Dashboard() {
               const elapsed = Math.round((Date.now() - started.getTime()) / 60000);
               const elapsedLabel =
                 elapsed < 60
-                  ? `${elapsed}m ago`
-                  : `${Math.floor(elapsed / 60)}h ${elapsed % 60}m ago`;
+                  ? `${elapsed}m`
+                  : `${Math.floor(elapsed / 60)}h ${elapsed % 60}m`;
 
               return (
                 <Link
                   key={s.id}
                   href={`/session/${s.id}`}
-                  className="card-padded flex items-center justify-between gap-3 active:bg-slate-50 transition-colors"
+                  className="flex overflow-hidden rounded-xl border border-field-green/20 bg-field-surface active:opacity-75 transition-opacity"
                 >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-900 truncate">
-                      {s.customerName || s.technicianName}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      {s.serialNumber ? `S/N ${s.serialNumber}` : 'No equipment yet'}
-                      {' \u00b7 '}
-                      {elapsedLabel}
-                    </p>
+                  <div className="w-1.5 bg-field-green/70 shrink-0 rounded-l-xl" />
+                  <div className="flex flex-1 items-center justify-between gap-3 px-4 py-3.5 min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-field-text truncate">
+                        {s.customerName || s.technicianName}
+                      </p>
+                      <p className="text-xs text-field-muted mt-0.5">
+                        {s.serialNumber ? `S/N ${s.serialNumber}` : 'No equipment yet'}
+                        {' · '}
+                        {elapsedLabel} ago
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-field-green/10 px-2 py-0.5 text-[11px] font-semibold text-field-green">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-field-green opacity-75" />
+                          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-field-green" />
+                        </span>
+                        Live
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-field-muted" />
+                    </div>
                   </div>
-                  <span className="badge-blue text-xs flex-shrink-0">Active</span>
-                  <ChevronRight className="w-4 h-4 text-slate-300 flex-shrink-0" />
                 </Link>
               );
             })}
@@ -125,16 +157,16 @@ export default async function Dashboard() {
       )}
 
       {/* Demo Data Banner */}
-      <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
+      <div className="rounded-xl border border-field-amber/20 bg-field-amber/5 p-4">
         <div className="flex items-start gap-3">
-          <Lightbulb className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <Lightbulb className="w-4 h-4 text-field-amber flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-amber-900">Demo Mode</p>
-            <p className="text-xs text-amber-700 mt-1">
+            <p className="text-sm font-semibold text-field-amber">Demo Mode</p>
+            <p className="text-xs text-field-muted mt-1 leading-relaxed">
               Start a session and try typing:{' '}
-              <span className="font-mono">Carrier 24ANB636A003</span>,{' '}
-              <span className="font-mono">Trane 4TTR6036J1000A</span>,{' '}
-              <span className="font-mono">Heatcraft BEH030A6K</span>
+              <span className="font-mono text-field-muted-bright">Carrier 24ANB636A003</span>,{' '}
+              <span className="font-mono text-field-muted-bright">Trane 4TTR6036J1000A</span>,{' '}
+              <span className="font-mono text-field-muted-bright">Heatcraft BEH030A6K</span>
             </p>
           </div>
         </div>
@@ -142,33 +174,25 @@ export default async function Dashboard() {
 
       {/* Stats Row */}
       <div className="grid grid-cols-4 gap-2">
-        <div className="card-padded text-center">
-          <Cpu className="w-4 h-4 text-slate-400 mx-auto mb-1" />
-          <p className="text-lg font-bold text-slate-900">{equipmentCount.value}</p>
-          <p className="text-[10px] text-slate-500">Models</p>
-        </div>
-        <div className="card-padded text-center">
-          <AlertTriangle className="w-4 h-4 text-slate-400 mx-auto mb-1" />
-          <p className="text-lg font-bold text-slate-900">{bulletinCount.value}</p>
-          <p className="text-[10px] text-slate-500">Bulletins</p>
-        </div>
-        <div className="card-padded text-center">
-          <FileText className="w-4 h-4 text-slate-400 mx-auto mb-1" />
-          <p className="text-lg font-bold text-slate-900">{reportCount.value}</p>
-          <p className="text-[10px] text-slate-500">Reports</p>
-        </div>
-        <div className="card-padded text-center">
-          <Wrench className="w-4 h-4 text-slate-400 mx-auto mb-1" />
-          <p className="text-lg font-bold text-slate-900">{partCount.value}</p>
-          <p className="text-[10px] text-slate-500">Parts</p>
-        </div>
+        {[
+          { icon: Cpu, label: 'Models', value: equipmentCount.value },
+          { icon: AlertTriangle, label: 'Bulletins', value: bulletinCount.value },
+          { icon: FileText, label: 'Reports', value: reportCount.value },
+          { icon: Wrench, label: 'Parts', value: partCount.value },
+        ].map(({ icon: Icon, label, value }) => (
+          <div key={label} className="rounded-xl border border-field-border bg-field-surface p-3 text-center">
+            <Icon className="w-3.5 h-3.5 text-field-muted mx-auto mb-1.5" />
+            <p className="text-lg font-bold text-field-text font-bc">{value}</p>
+            <p className="text-[10px] text-field-muted uppercase tracking-wide mt-0.5">{label}</p>
+          </div>
+        ))}
       </div>
 
       {/* Recent Activity */}
       {recentCompleted.length > 0 && (
         <section>
-          <h2 className="section-header flex items-center gap-2 mb-3">
-            <BarChart3 className="w-5 h-5 text-slate-400" />
+          <h2 className="flex items-center gap-2 text-[11px] font-semibold text-field-muted uppercase tracking-wider mb-3 px-0.5">
+            <BarChart3 className="w-3.5 h-3.5" />
             Recent Activity
           </h2>
           <div className="space-y-2">
@@ -176,21 +200,28 @@ export default async function Dashboard() {
               <Link
                 key={s.id}
                 href={`/session/${s.id}`}
-                className="card-padded flex items-center justify-between gap-3 active:bg-slate-50 transition-colors"
+                className="flex overflow-hidden rounded-xl border border-field-border bg-field-surface active:opacity-75 transition-opacity"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-slate-900 truncate">
-                    {s.customerName || s.technicianName}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {s.completedAt || s.createdAt}
-                    {s.serialNumber ? ` \u00b7 S/N ${s.serialNumber}` : ''}
-                  </p>
+                <div className="w-1.5 bg-field-blue/50 shrink-0 rounded-l-xl" />
+                <div className="flex flex-1 items-center justify-between gap-3 px-4 py-3.5 min-w-0">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-field-text truncate">
+                      {s.customerName || s.technicianName}
+                    </p>
+                    <p className="text-xs text-field-muted mt-0.5">
+                      {s.completedAt
+                        ? new Date(s.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        : '—'}
+                      {s.serialNumber ? ` · S/N ${s.serialNumber}` : ''}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="rounded-full bg-field-blue/10 px-2 py-0.5 text-[11px] font-semibold text-field-blue">
+                      Done
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-field-muted" />
+                  </div>
                 </div>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-                  Completed
-                </span>
-                <ChevronRight className="w-4 h-4 text-slate-300 flex-shrink-0" />
               </Link>
             ))}
           </div>

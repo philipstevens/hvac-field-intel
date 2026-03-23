@@ -8,7 +8,6 @@ html {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -24,7 +23,7 @@ body {
   }
 
   .card {
-    @apply bg-white rounded-xl border border-slate-200 shadow-sm;
+    @apply bg-field-surface rounded-xl border border-field-border;
   }
 
   .card-padded {
@@ -32,76 +31,74 @@ body {
   }
 
   .section-header {
-    @apply text-lg font-semibold text-slate-900;
+    @apply text-base font-semibold text-field-text;
   }
 
   .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold;
   }
 
   .badge-red {
-    @apply badge bg-red-100 text-red-700;
+    @apply badge bg-red-500/15 text-red-400;
   }
 
   .badge-amber {
-    @apply badge bg-amber-100 text-amber-700;
+    @apply badge bg-amber-500/15 text-amber-400;
   }
 
   .badge-blue {
-    @apply badge bg-blue-100 text-blue-700;
+    @apply badge bg-blue-500/15 text-blue-400;
   }
 
   .badge-green {
-    @apply badge bg-green-100 text-green-700;
+    @apply badge bg-green-500/15 text-green-400;
   }
 
   .input-field {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm
-           placeholder:text-slate-400
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+    @apply w-full rounded-xl border border-field-border bg-field-surface2 px-4 py-3.5 text-sm text-field-text
+           placeholder:text-field-muted
+           focus:outline-none focus:ring-2 focus:ring-field-accent/40 focus:border-field-accent
            transition-colors;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2
-           text-sm font-medium text-white
-           hover:bg-blue-700 active:bg-blue-800
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-           transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-xl bg-field-accent px-5 py-3
+           text-sm font-semibold text-white
+           hover:bg-field-accent-hover active:scale-[0.97]
+           focus:outline-none focus:ring-2 focus:ring-field-accent/50 focus:ring-offset-2 focus:ring-offset-field-bg
+           transition-all disabled:opacity-40 disabled:cursor-not-allowed;
   }
 
   .field-input {
-    @apply w-full rounded-xl border-2 bg-white px-4 py-3 text-sm
-           placeholder:text-slate-400
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-           transition-all;
+    @apply input-field;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-slate-300
-           bg-white px-4 py-2 text-sm font-medium text-slate-700
-           hover:bg-slate-50 active:bg-slate-100
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-           transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-xl border border-field-border
+           bg-field-surface px-4 py-2.5 text-sm font-medium text-field-text
+           hover:bg-field-surface2 active:scale-[0.97]
+           focus:outline-none focus:ring-2 focus:ring-field-accent/30
+           transition-all disabled:opacity-40 disabled:cursor-not-allowed;
   }
 }
 
-/* Custom scrollbar for webkit browsers */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded-full;
+  background: #1F3050;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-400;
+  background: #2A4268;
 }
 
 /* Remove tap highlight on mobile */

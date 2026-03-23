@@ -12,7 +12,6 @@ import {
   User,
   MapPin,
   AlertTriangle,
-  Wrench,
   Clock,
   MessageSquare,
   Package,
@@ -87,7 +86,6 @@ export default function SessionWorkspacePage() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch session details
   const fetchSession = useCallback(async () => {
     try {
       const res = await fetch(`/api/session/${sessionId}`);
@@ -100,7 +98,6 @@ export default function SessionWorkspacePage() {
     }
   }, [sessionId]);
 
-  // Fetch messages
   const fetchMessages = useCallback(async () => {
     try {
       const res = await fetch(`/api/session/${sessionId}/message`);
@@ -113,17 +110,14 @@ export default function SessionWorkspacePage() {
     }
   }, [sessionId]);
 
-  // Initial load
   useEffect(() => {
     Promise.all([fetchSession(), fetchMessages()]).finally(() => setLoading(false));
   }, [fetchSession, fetchMessages]);
 
-  // Auto-scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Clear new message animation after delay
   useEffect(() => {
     if (newMessageIds.size > 0) {
       const timer = setTimeout(() => setNewMessageIds(new Set()), 500);
@@ -133,7 +127,6 @@ export default function SessionWorkspacePage() {
 
   const isDemo = !!sessionDetails?.session?.isDemo;
 
-  // Determine quick action suggestions
   const hasEquipment = sessionDetails?.session?.equipmentModelId != null;
   const hasDiagnostic = messages.some((m) => m.messageType === "suggestion");
   const hasReport = messages.some((m) => m.messageType === "report_generated");
@@ -147,7 +140,6 @@ export default function SessionWorkspacePage() {
     quickSuggestions = POST_EQUIPMENT_CHIPS;
   }
 
-  // Send message
   const sendMessage = async (content: string) => {
     if (!content.trim() || sending) return;
 
@@ -155,7 +147,6 @@ export default function SessionWorkspacePage() {
     setInput("");
     setSending(true);
 
-    // Optimistic user message
     const optimisticMsg: Message = {
       id: `temp-${Date.now()}`,
       role: "user",
@@ -176,7 +167,6 @@ export default function SessionWorkspacePage() {
       if (res.ok) {
         const { userMessage, responses } = await res.json();
 
-        // Replace optimistic message with real one + add responses
         const responseIds = new Set<string>();
         responses.forEach((r: Message) => responseIds.add(r.id));
 
@@ -186,12 +176,10 @@ export default function SessionWorkspacePage() {
         });
         setNewMessageIds(responseIds);
 
-        // Refresh session details (equipment may have been identified)
         fetchSession();
       }
     } catch (err) {
       console.error("Failed to send message:", err);
-      // Remove optimistic message on error
       setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
     } finally {
       setSending(false);
@@ -210,8 +198,8 @@ export default function SessionWorkspacePage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+      <div className="flex h-screen items-center justify-center bg-field-bg">
+        <Loader2 className="h-8 w-8 animate-spin text-field-accent" />
       </div>
     );
   }
@@ -219,44 +207,46 @@ export default function SessionWorkspacePage() {
   const session = sessionDetails?.session;
 
   return (
-    <div className="flex h-screen flex-col bg-slate-50 lg:flex-row">
+    <div className="flex h-screen flex-col bg-field-bg lg:flex-row">
       {/* ==================== */}
       {/* CHAT PANEL           */}
       {/* ==================== */}
-      <div className="flex flex-1 flex-col min-h-0 lg:border-r lg:border-slate-200">
+      <div className="flex flex-1 flex-col min-h-0 lg:border-r lg:border-field-border">
         {/* Chat Header */}
-        <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/95 backdrop-blur-sm px-4 py-3 shadow-sm">
+        <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-field-border bg-field-surface/95 backdrop-blur-sm px-4 py-3">
           <button
             onClick={() => router.push("/session")}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 active:bg-slate-200 transition-colors -ml-1"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-field-muted hover:bg-field-surface2 active:bg-field-surface3 transition-colors -ml-1 shrink-0"
             aria-label="Back to sessions"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="text-sm font-semibold text-slate-900 truncate">
+            <h1 className="text-sm font-semibold text-field-text truncate">
               {session?.customerName
                 ? `${session.customerName} Service`
                 : "Service Session"}
             </h1>
-            <p className="text-xs text-slate-500 truncate">
+            <p className="text-xs text-field-muted truncate">
               {session?.technicianName}
-              {session?.modelNumber && ` \u00b7 ${session.modelNumber}`}
+              {session?.modelNumber && (
+                <span className="font-bc font-semibold text-field-muted-bright"> · {session.modelNumber}</span>
+              )}
             </p>
           </div>
           {isDemo && (
-            <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+            <span className="flex items-center gap-1 rounded-full bg-field-amber/10 px-2 py-1 text-[11px] font-semibold text-field-amber shrink-0">
               <Lock className="h-2.5 w-2.5" />
               Demo
             </span>
           )}
           {!isDemo && session?.status === "active" && (
-            <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700">
+            <span className="flex items-center gap-1 rounded-full bg-field-green/10 px-2 py-1 text-[11px] font-semibold text-field-green shrink-0">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-field-green opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-field-green" />
               </span>
-              Active
+              Live
             </span>
           )}
         </div>
@@ -265,19 +255,19 @@ export default function SessionWorkspacePage() {
         <div className="lg:hidden">
           <button
             onClick={() => setContextExpanded(!contextExpanded)}
-            className="flex w-full items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-2 text-xs text-slate-500"
+            className="flex w-full items-center justify-between border-b border-field-border bg-field-surface2 px-4 py-2.5 text-xs text-field-muted"
           >
             <span className="flex items-center gap-2">
               {hasEquipment ? (
                 <>
-                  <Cpu className="h-3.5 w-3.5 text-green-500" />
-                  <span className="font-medium text-slate-700">
+                  <Cpu className="h-3.5 w-3.5 text-field-green" />
+                  <span className="font-bc font-semibold text-field-text tracking-wide">
                     {session?.manufacturer} {session?.modelNumber}
                   </span>
                 </>
               ) : (
                 <>
-                  <MessageSquare className="h-3.5 w-3.5 text-slate-400" />
+                  <MessageSquare className="h-3.5 w-3.5 text-field-muted" />
                   <span>Session Details</span>
                 </>
               )}
@@ -290,7 +280,7 @@ export default function SessionWorkspacePage() {
           </button>
 
           {contextExpanded && (
-            <div className="border-b border-slate-200 bg-white px-4 py-3">
+            <div className="border-b border-field-border bg-field-surface px-4 py-4">
               <ContextPanelContent
                 session={session}
                 bulletinsCount={sessionDetails?.bulletins?.length || 0}
@@ -308,13 +298,13 @@ export default function SessionWorkspacePage() {
         >
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center px-8">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 mb-3">
-                <MessageSquare className="h-7 w-7 text-blue-500" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-field-surface border border-field-border mb-4">
+                <MessageSquare className="h-8 w-8 text-field-muted" />
               </div>
-              <p className="text-sm font-medium text-slate-600">
-                Start by telling me what equipment you&apos;re working on.
+              <p className="text-sm font-semibold text-field-text">
+                What equipment are you working on?
               </p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-field-muted mt-1.5 leading-relaxed">
                 Enter a model number, or tap a suggestion below.
               </p>
             </div>
@@ -332,11 +322,11 @@ export default function SessionWorkspacePage() {
           {/* Typing indicator */}
           {sending && (
             <div className="flex justify-start px-4 py-1">
-              <div className="rounded-2xl rounded-bl-md bg-white px-4 py-3 shadow-sm border border-slate-100">
-                <div className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="h-2 w-2 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="h-2 w-2 rounded-full bg-slate-300 animate-bounce" style={{ animationDelay: "300ms" }} />
+              <div className="rounded-2xl rounded-bl-md bg-field-surface px-4 py-3 border border-field-border">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-field-muted animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="h-2 w-2 rounded-full bg-field-muted animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="h-2 w-2 rounded-full bg-field-muted animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
               </div>
             </div>
@@ -346,19 +336,19 @@ export default function SessionWorkspacePage() {
         </div>
 
         {/* Quick Actions + Input */}
-        <div className="sticky bottom-0 border-t border-slate-200 bg-slate-50 safe-bottom">
+        <div className="sticky bottom-0 border-t border-field-border bg-field-bg safe-bottom">
           {/* Demo read-only banner */}
           {isDemo ? (
-            <div className="flex items-center justify-between gap-3 border-b border-amber-100 bg-amber-50 px-4 py-2.5">
+            <div className="flex items-center justify-between gap-3 border-b border-field-amber/20 bg-field-amber/5 px-4 py-3">
               <div className="flex items-center gap-2 min-w-0">
-                <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                <span className="text-xs text-amber-700 font-medium">
+                <Lock className="h-3.5 w-3.5 text-field-amber shrink-0" />
+                <span className="text-xs text-field-amber font-medium">
                   Demo session — read only
                 </span>
               </div>
               <a
                 href="/session/new"
-                className="shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                className="shrink-0 rounded-xl bg-field-accent px-3.5 py-2 text-xs font-semibold text-white hover:bg-field-accent-hover transition-colors"
               >
                 Start my own
               </a>
@@ -374,16 +364,20 @@ export default function SessionWorkspacePage() {
           {/* Input */}
           <form
             onSubmit={handleSubmit}
-            className="flex items-center gap-2 px-4 pb-4 pt-2"
+            className="flex items-center gap-3 px-4 pb-4 pt-2"
           >
             <input
               ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={isDemo ? "Demo session — start your own to try it" : "Ask about equipment, parts, bulletins..."}
+              placeholder={
+                isDemo
+                  ? "Demo session — start your own to try it"
+                  : "Ask about equipment, parts, bulletins..."
+              }
               disabled={isDemo || sending || session?.status !== "active"}
-              className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:opacity-50 disabled:bg-slate-100"
+              className="flex-1 rounded-xl border border-field-border bg-field-surface2 px-4 py-3.5 text-sm text-field-text placeholder:text-field-muted focus:outline-none focus:ring-2 focus:ring-field-accent/40 focus:border-field-accent transition-all disabled:opacity-50 disabled:bg-field-surface"
             />
             <button
               type="submit"
@@ -391,8 +385,8 @@ export default function SessionWorkspacePage() {
               className={clsx(
                 "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all",
                 !isDemo && input.trim() && !sending
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-200 hover:bg-blue-700 active:scale-95"
-                  : "bg-slate-200 text-slate-400"
+                  ? "bg-field-accent text-white shadow-lg shadow-field-accent/25 hover:bg-field-accent-hover active:scale-95"
+                  : "bg-field-surface2 text-field-muted border border-field-border"
               )}
               aria-label="Send message"
             >
@@ -409,8 +403,10 @@ export default function SessionWorkspacePage() {
       {/* ==================== */}
       {/* CONTEXT PANEL (Desktop Sidebar) */}
       {/* ==================== */}
-      <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col overflow-y-auto bg-white p-5">
-        <h2 className="text-sm font-semibold text-slate-800 mb-4">Session Context</h2>
+      <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col overflow-y-auto bg-field-surface border-l border-field-border p-5">
+        <h2 className="font-bc text-sm font-bold uppercase tracking-wider text-field-muted mb-4">
+          Session Context
+        </h2>
         <ContextPanelContent
           session={session}
           bulletinsCount={sessionDetails?.bulletins?.length || 0}
@@ -446,7 +442,6 @@ function ContextPanelContent({
 
   const hasEquipment = !!session.equipmentModelId;
 
-  // Extract typed messages for the panel
   const equipmentMsg = messages.filter((m) => m.messageType === "equipment_identified").at(-1);
   const bulletinMsgs = messages.filter((m) => m.messageType === "bulletin_alert");
   const partsMsgs = messages.filter((m) => m.messageType === "parts_info");
@@ -456,7 +451,6 @@ function ContextPanelContent({
     try { return JSON.parse(metadata); } catch { return {}; }
   }
 
-  // Build timeline events from messages
   const events = messages
     .filter((m) => m.role === "system" && m.messageType !== "text")
     .map((m) => ({
@@ -470,29 +464,29 @@ function ContextPanelContent({
       {/* Customer & Site */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-sm">
-          <User className="h-4 w-4 text-slate-400 shrink-0" />
-          <span className="text-slate-700">
-            {session.customerName || "No customer set"}
+          <User className="h-4 w-4 text-field-muted shrink-0" />
+          <span className="text-field-text">
+            {session.customerName || <span className="text-field-muted">No customer set</span>}
           </span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
-          <span className="text-slate-700">
-            {session.siteAddress || "No address set"}
+          <MapPin className="h-4 w-4 text-field-muted shrink-0" />
+          <span className="text-field-text">
+            {session.siteAddress || <span className="text-field-muted">No address set</span>}
           </span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <Clock className="h-4 w-4 text-slate-400 shrink-0" />
-          <span className="text-slate-500 text-xs">
+          <Clock className="h-4 w-4 text-field-muted shrink-0" />
+          <span className="text-field-muted text-xs">
             Started {formatRelativeTime(session.createdAt)}
           </span>
         </div>
       </div>
 
-      {/* Equipment — full card from message, or compact fallback */}
+      {/* Equipment */}
       {hasEquipment && equipmentMsg ? (
         <div>
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+          <h3 className="text-[11px] font-semibold text-field-muted uppercase tracking-wider mb-2">
             Equipment
           </h3>
           <EquipmentIdentifiedCard
@@ -501,31 +495,31 @@ function ContextPanelContent({
           />
         </div>
       ) : hasEquipment ? (
-        <div className="rounded-xl border border-green-200 bg-green-50/60 p-3.5 space-y-2">
+        <div className="rounded-xl border border-field-green/20 bg-field-green/5 p-3.5 space-y-2">
           <div className="flex items-center gap-2">
-            <Cpu className="h-4 w-4 text-green-600" />
-            <span className="text-xs font-semibold text-green-800 uppercase tracking-wider">
+            <Cpu className="h-4 w-4 text-field-green" />
+            <span className="text-xs font-semibold text-field-green uppercase tracking-wider">
               Identified Equipment
             </span>
           </div>
-          <p className="text-sm font-bold text-slate-900">{session.modelNumber}</p>
+          <p className="font-bc text-base font-bold text-field-text tracking-wide">{session.modelNumber}</p>
           {session.serialNumber && (
-            <p className="text-xs text-slate-500 font-mono">S/N: {session.serialNumber}</p>
+            <p className="text-xs text-field-muted font-mono">S/N: {session.serialNumber}</p>
           )}
         </div>
       ) : null}
 
-      {/* Bulletins — gated on equipment identified */}
+      {/* Bulletins */}
       {hasEquipment && bulletinMsgs.length > 0 && (
         <div>
           <button
             onClick={() => setShowBulletins((v) => !v)}
-            className="flex w-full items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2"
+            className="flex w-full items-center justify-between text-[11px] font-semibold text-field-muted uppercase tracking-wider mb-2"
           >
             <span className="flex items-center gap-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+              <AlertTriangle className="h-3.5 w-3.5 text-field-amber" />
               Bulletins
-              <span className="ml-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 normal-case tracking-normal">
+              <span className="ml-1 rounded-full bg-field-amber/15 px-1.5 py-0.5 text-[10px] font-bold text-field-amber normal-case tracking-normal">
                 {bulletinMsgs.length}
               </span>
             </span>
@@ -549,17 +543,17 @@ function ContextPanelContent({
         </div>
       )}
 
-      {/* Parts — gated on equipment identified */}
+      {/* Parts */}
       {hasEquipment && partsMsgs.length > 0 && (
         <div>
           <button
             onClick={() => setShowParts((v) => !v)}
-            className="flex w-full items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2"
+            className="flex w-full items-center justify-between text-[11px] font-semibold text-field-muted uppercase tracking-wider mb-2"
           >
             <span className="flex items-center gap-1.5">
-              <Package className="h-3.5 w-3.5 text-blue-500" />
+              <Package className="h-3.5 w-3.5 text-field-blue" />
               Parts
-              <span className="ml-1 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 normal-case tracking-normal">
+              <span className="ml-1 rounded-full bg-field-blue/15 px-1.5 py-0.5 text-[10px] font-bold text-field-blue normal-case tracking-normal">
                 {partsMsgs.length}
               </span>
             </span>
@@ -585,9 +579,9 @@ function ContextPanelContent({
 
       {/* "Identify equipment first" hint */}
       {!hasEquipment && (
-        <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-center">
-          <Cpu className="mx-auto h-5 w-5 text-slate-300 mb-1.5" />
-          <p className="text-xs text-slate-400">
+        <div className="rounded-xl border border-field-border bg-field-surface2 p-4 text-center">
+          <Cpu className="mx-auto h-6 w-6 text-field-muted mb-2" />
+          <p className="text-xs text-field-muted leading-relaxed">
             Identify equipment to see bulletins and parts
           </p>
         </div>
@@ -596,7 +590,7 @@ function ContextPanelContent({
       {/* Session Activity Timeline */}
       {events.length > 0 && (
         <div>
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+          <h3 className="text-[11px] font-semibold text-field-muted uppercase tracking-wider mb-3">
             Session Activity
           </h3>
           <div className="space-y-0">
@@ -605,22 +599,22 @@ function ContextPanelContent({
                 <div className="flex flex-col items-center">
                   <div className={clsx(
                     "h-2 w-2 rounded-full mt-1.5 shrink-0",
-                    evt.type === "equipment_identified" ? "bg-green-400" :
-                    evt.type === "bulletin_alert" ? "bg-amber-400" :
-                    evt.type === "parts_info" ? "bg-blue-400" :
-                    evt.type === "suggestion" ? "bg-purple-400" :
-                    evt.type === "report_generated" ? "bg-indigo-400" :
-                    "bg-slate-300"
+                    evt.type === "equipment_identified" ? "bg-field-green" :
+                    evt.type === "bulletin_alert" ? "bg-field-amber" :
+                    evt.type === "parts_info" ? "bg-field-blue" :
+                    evt.type === "suggestion" ? "bg-field-purple" :
+                    evt.type === "report_generated" ? "bg-field-blue" :
+                    "bg-field-border"
                   )} />
                   {i < events.length - 1 && (
-                    <div className="w-px flex-1 bg-slate-200 my-1" />
+                    <div className="w-px flex-1 bg-field-border my-1" />
                   )}
                 </div>
                 <div className="pb-3 min-w-0">
-                  <p className="text-xs font-medium text-slate-700 leading-tight">
+                  <p className="text-xs font-medium text-field-text leading-tight">
                     {evt.label}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
+                  <p className="text-[10px] text-field-muted mt-0.5">
                     {formatRelativeTime(evt.time)}
                   </p>
                 </div>

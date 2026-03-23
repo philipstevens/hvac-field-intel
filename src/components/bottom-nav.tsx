@@ -29,7 +29,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur-sm shadow-[0_-1px_3px_rgba(0,0,0,0.05)] safe-bottom"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-field-border bg-field-surface/95 backdrop-blur-sm shadow-[0_-1px_0_rgba(31,48,80,0.8)] safe-bottom"
       role="navigation"
       aria-label="Main navigation"
     >
@@ -42,19 +42,24 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-1 text-xs font-medium transition-colors ${
+              className={`flex flex-1 flex-col items-center justify-center gap-1 py-1 text-xs font-semibold transition-colors ${
                 active
-                  ? "text-blue-600"
+                  ? "text-field-accent"
                   : item.highlight
-                    ? "text-blue-500 hover:text-blue-600"
-                    : "text-slate-400 hover:text-slate-600"
+                    ? "text-field-muted-bright hover:text-field-text"
+                    : "text-field-muted hover:text-field-text"
               }`}
               aria-current={active ? "page" : undefined}
             >
-              <Icon
-                className={`h-5 w-5 ${active ? "stroke-[2.5px]" : item.highlight ? "stroke-[2px]" : "stroke-[1.5px]"}`}
-              />
-              <span>{item.label}</span>
+              <div className={`relative flex items-center justify-center rounded-xl p-1.5 transition-colors ${active ? "bg-field-accent/10" : ""}`}>
+                <Icon
+                  className={`h-5 w-5 ${active ? "stroke-[2.5px]" : "stroke-[1.75px]"}`}
+                />
+                {active && item.highlight && (
+                  <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-field-accent" />
+                )}
+              </div>
+              <span className="tracking-wide">{item.label}</span>
             </Link>
           );
         })}
