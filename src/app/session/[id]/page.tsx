@@ -82,7 +82,6 @@ export default function SessionWorkspacePage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [pendingRetry, setPendingRetry] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [contextExpanded, setContextExpanded] = useState(false);
   const [newMessageIds, setNewMessageIds] = useState<Set<string>>(new Set());
@@ -151,7 +150,6 @@ export default function SessionWorkspacePage() {
     const trimmed = content.trim();
     setInput("");
     setSendError(null);
-    setPendingRetry(null);
     setSending(true);
 
     const optimisticMsg: Message = {
@@ -163,6 +161,12 @@ export default function SessionWorkspacePage() {
       createdAt: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, optimisticMsg]);
+
+    const rollback = (msg: string) => {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+      setInput(trimmed);
+      setSendError(msg);
+    };
 
     try {
       const res = await fetch(`/api/session/${sessionId}/message`, {
@@ -183,31 +187,21 @@ export default function SessionWorkspacePage() {
         });
         setNewMessageIds(responseIds);
 
-        // Auto-expand context panel if a safety-critical bulletin was returned
+        // Safety-critical bulletins require immediate attention — auto-expand so the tech can't miss them
         const hasSafetyCritical = responses.some((r: Message) => {
           if (r.messageType !== "bulletin_alert") return false;
-          try {
-            const meta = JSON.parse(r.metadata ?? "{}");
-            return meta.severity === "safety_critical" || meta.bulletins?.some((b: { severity: string }) => b.severity === "safety_critical");
-          } catch {
-            return false;
-          }
+          const meta = parseMetadata(r.metadata);
+          return meta?.severity === "safety_critical" || meta?.bulletins?.some((b: { severity: string }) => b.severity === "safety_critical");
         });
         if (hasSafetyCritical) setContextExpanded(true);
 
         fetchSession();
       } else {
-        setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
-        setInput(trimmed);
-        setSendError("Failed to send — server error");
-        setPendingRetry(trimmed);
+        rollback("Failed to send — server error");
       }
     } catch (err) {
       console.error("Failed to send message:", err);
-      setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
-      setInput(trimmed);
-      setSendError("Failed to send — check your connection");
-      setPendingRetry(trimmed);
+      rollback("Failed to send — check your connection");
     } finally {
       setSending(false);
       inputRef.current?.focus();
@@ -362,9 +356,9 @@ export default function SessionWorkspacePage() {
                 <AlertCircle className="h-3.5 w-3.5 text-field-red shrink-0" />
                 <span className="text-xs text-field-red font-medium truncate">{sendError}</span>
               </div>
-              {pendingRetry && (
+              {input && (
                 <button
-                  onClick={() => { setSendError(null); sendMessage(pendingRetry); }}
+                  onClick={() => { setSendError(null); sendMessage(input); }}
                   className="shrink-0 rounded-xl bg-field-red/15 px-3 py-1.5 text-xs font-semibold text-field-red hover:bg-field-red/25 transition-colors"
                 >
                   Retry

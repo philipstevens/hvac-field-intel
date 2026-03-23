@@ -88,7 +88,7 @@ export async function POST(
         id: crypto.randomUUID(),
         eventType: r.messageType,
         metadata: JSON.stringify({ sessionId: id, messageId: r.id }),
-        createdAt: new Date().toISOString(),
+        createdAt: now,
       }));
     if (analyticsToInsert.length > 0) {
       await db.insert(analyticsEvents).values(analyticsToInsert);

@@ -37,13 +37,6 @@ export async function POST(request: NextRequest) {
 
     await db.insert(sessions).values(session);
 
-    await db.insert(analyticsEvents).values({
-      id: crypto.randomUUID(),
-      eventType: 'session_created',
-      metadata: JSON.stringify({ sessionId, technicianName: body.technicianName, hasCustomer: !!body.customerName }),
-      createdAt: now,
-    });
-
     const message = {
       id: messageId,
       sessionId,
@@ -54,7 +47,15 @@ export async function POST(request: NextRequest) {
       createdAt: now,
     };
 
-    await db.insert(sessionMessages).values(message);
+    await Promise.all([
+      db.insert(sessionMessages).values(message),
+      db.insert(analyticsEvents).values({
+        id: crypto.randomUUID(),
+        eventType: 'session_created',
+        metadata: JSON.stringify({ sessionId, technicianName: body.technicianName, hasCustomer: !!body.customerName }),
+        createdAt: now,
+      }),
+    ]);
 
     const messages = [message];
 
