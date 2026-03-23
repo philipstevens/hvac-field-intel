@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import {
   sessions,
+  sessionMessages,
   models,
   productLines,
   manufacturers,
@@ -108,6 +109,33 @@ export async function GET(
       { error: 'Failed to get session' },
       { status: 500 }
     );
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  try {
+    const [existing] = await db.select().from(sessions).where(eq(sessions.id, id)).limit(1);
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    }
+
+    if (existing.isDemo) {
+      return NextResponse.json({ error: 'Demo sessions cannot be deleted' }, { status: 403 });
+    }
+
+    await db.delete(sessionMessages).where(eq(sessionMessages.sessionId, id));
+    await db.delete(sessions).where(eq(sessions.id, id));
+
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error('Failed to delete session:', error);
+    return NextResponse.json({ error: 'Failed to delete session' }, { status: 500 });
   }
 }
 

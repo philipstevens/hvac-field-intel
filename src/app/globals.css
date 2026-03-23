@@ -19,7 +19,7 @@ body {
   }
 
   .content-area {
-    @apply pb-24 min-h-screen;
+    @apply min-h-screen;
   }
 
   .card {

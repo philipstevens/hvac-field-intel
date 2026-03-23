@@ -426,24 +426,6 @@ const sessionMessagesData = [
     }),
     createdAt: '2024-07-15T14:10:05Z',
   },
-  {
-    id: uid(),
-    sessionId: sessionsData[0].id,
-    role: 'user',
-    messageType: 'measurement',
-    content: 'Capacitor is bulging, replacing it',
-    metadata: null,
-    createdAt: '2024-07-15T14:20:00Z',
-  },
-  {
-    id: uid(),
-    sessionId: sessionsData[0].id,
-    role: 'system',
-    messageType: 'report_generated',
-    content: 'Noted. Updated service report draft with capacitor replacement. Old part P461-3503 (bulging) replaced with P461-3508. Diagnosis: capacitor failure due to age and high ambient temperature.',
-    metadata: null,
-    createdAt: '2024-07-15T14:20:05Z',
-  },
   // Sarah Chen completed session
   {
     id: uid(),
