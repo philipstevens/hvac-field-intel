@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   MessageSquare,
@@ -39,7 +39,6 @@ const TECH_NAME_KEY = "hvac_tech_name";
 
 export default function SessionListPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -52,8 +51,8 @@ export default function SessionListPage() {
   useEffect(() => {
     const saved = localStorage.getItem(TECH_NAME_KEY);
     if (saved) setTechnicianName(saved);
-    if (searchParams.get("new") === "1") setShowForm(true);
-  }, [searchParams]);
+    if (new URLSearchParams(window.location.search).get("new") === "1") setShowForm(true);
+  }, []);
 
   const fetchSessions = useCallback(async () => {
     try {
