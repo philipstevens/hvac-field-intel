@@ -799,55 +799,62 @@ async function seed() {
     await client.execute(`DELETE FROM ${table}`);
   }
 
-  await db.insert(schema.manufacturers).values([carrier, trane, lennox, heatcraft]);
+  // Insert row by row to avoid Turso HTTP parameter limits on multi-row INSERTs
+  async function insertAll<T extends Record<string, unknown>>(table: any, rows: T[]) {
+    for (const row of rows) {
+      await db.insert(table).values(row);
+    }
+  }
+
+  await insertAll(schema.manufacturers, [carrier, trane, lennox, heatcraft]);
   console.log('  ✓ Manufacturers');
 
-  await db.insert(schema.productLines).values([carrierInfinity, carrierPerformance, traneXR, traneS9, lennoxXC, lennoxSL, heatcraftBohn]);
+  await insertAll(schema.productLines, [carrierInfinity, carrierPerformance, traneXR, traneS9, lennoxXC, lennoxSL, heatcraftBohn]);
   console.log('  ✓ Product Lines');
 
-  await db.insert(schema.models).values([...modelData, refrModel]);
+  await insertAll(schema.models, [...modelData, refrModel]);
   console.log('  ✓ Models');
 
-  await db.insert(schema.serialRanges).values([...serialRangeData, refrSerialRange]);
+  await insertAll(schema.serialRanges, [...serialRangeData, refrSerialRange]);
   console.log('  ✓ Serial Ranges');
 
-  await db.insert(schema.parts).values([...partsData, ...refrParts]);
+  await insertAll(schema.parts, [...partsData, ...refrParts]);
   console.log('  ✓ Parts');
 
-  await db.insert(schema.partSupersessions).values([...supersessionData, ...refrSupersessions]);
+  await insertAll(schema.partSupersessions, [...supersessionData, ...refrSupersessions]);
   console.log('  ✓ Part Supersessions');
 
-  await db.insert(schema.modelParts).values([...modelPartsData, ...refrModelParts]);
+  await insertAll(schema.modelParts, [...modelPartsData, ...refrModelParts]);
   console.log('  ✓ Model-Part Relationships');
 
-  await db.insert(schema.bulletins).values([...bulletinData, refrBulletin]);
+  await insertAll(schema.bulletins, [...bulletinData, refrBulletin]);
   console.log('  ✓ Bulletins');
 
-  await db.insert(schema.bulletinApplicability).values([...bulletinApplicabilityData, refrBulletinApplicability]);
+  await insertAll(schema.bulletinApplicability, [...bulletinApplicabilityData, refrBulletinApplicability]);
   console.log('  ✓ Bulletin Applicability');
 
-  await db.insert(schema.manuals).values([...manualsData, refrManual]);
+  await insertAll(schema.manuals, [...manualsData, refrManual]);
   console.log('  ✓ Manuals');
 
-  await db.insert(schema.manualRevisions).values([...manualRevisionsData, refrManualRevision]);
+  await insertAll(schema.manualRevisions, [...manualRevisionsData, refrManualRevision]);
   console.log('  ✓ Manual Revisions');
 
-  await db.insert(schema.suppliers).values([...suppliersData, refrSupplier]);
+  await insertAll(schema.suppliers, [...suppliersData, refrSupplier]);
   console.log('  ✓ Suppliers');
 
-  await db.insert(schema.supplierInventory).values([...supplierInventoryData, ...refrInventory]);
+  await insertAll(schema.supplierInventory, [...supplierInventoryData, ...refrInventory]);
   console.log('  ✓ Supplier Inventory');
 
-  await db.insert(schema.serviceReports).values([...reportsData, refrReport]);
+  await insertAll(schema.serviceReports, [...reportsData, refrReport]);
   console.log('  ✓ Service Reports');
 
-  await db.insert(schema.analyticsEvents).values(analyticsData);
+  await insertAll(schema.analyticsEvents, analyticsData);
   console.log('  ✓ Analytics Events');
 
-  await db.insert(schema.sessions).values([...sessionsData, refrSession]);
+  await insertAll(schema.sessions, [...sessionsData, refrSession]);
   console.log('  ✓ Sessions');
 
-  await db.insert(schema.sessionMessages).values([...sessionMessagesData, ...refrSessionMessages]);
+  await insertAll(schema.sessionMessages, [...sessionMessagesData, ...refrSessionMessages]);
   console.log('  ✓ Session Messages');
 
   console.log('\nDone! Database seeded successfully.');
