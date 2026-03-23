@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Set a long-lived visitor cookie if not present
   if (!request.cookies.get('visitor_id')) {
-    const visitorId = crypto.randomUUID();
+    const visitorId = globalThis.crypto.randomUUID();
     response.cookies.set('visitor_id', visitorId, {
       path: '/',
       maxAge: 60 * 60 * 24 * 365, // 1 year
