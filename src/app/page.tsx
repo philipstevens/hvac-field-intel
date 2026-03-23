@@ -14,7 +14,6 @@ import {
   ChevronRight,
   Lock,
   Thermometer,
-  Lightbulb,
   Trash2,
 } from "lucide-react";
 import clsx from "clsx";
@@ -121,8 +120,6 @@ export default function HomePage() {
     }
     return { demoSessions: demos, activeSessions: active, completedSessions: completed };
   }, [sessions]);
-
-  const hasPersonalSessions = activeSessions.length > 0 || completedSessions.length > 0;
 
   return (
     <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto">
@@ -250,23 +247,6 @@ export default function HomePage() {
         </form>
       )}
 
-      {/* Demo hint */}
-      {!loading && !hasPersonalSessions && !showForm && (
-        <div className="rounded-xl border border-field-amber/20 bg-field-amber/5 p-4">
-          <div className="flex items-start gap-3">
-            <Lightbulb className="w-4 h-4 text-field-amber flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-field-amber">Try it out</p>
-              <p className="text-xs text-field-muted mt-1 leading-relaxed">
-                Start a session and type:{" "}
-                <span className="font-mono text-field-muted-bright">Carrier 24ANB636A003</span>,{" "}
-                <span className="font-mono text-field-muted-bright">Trane 4TTR6036J1000A</span>,{" "}
-                <span className="font-mono text-field-muted-bright">Heatcraft BEH030A6K</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Loading */}
       {loading && (
@@ -312,7 +292,6 @@ export default function HomePage() {
       {/* Demo sessions */}
       {!loading && demoSessions.length > 0 && (
         <section>
-          <SectionLabel label="Demo" sublabel="Sample sessions — explore the app" />
           <div className="space-y-2.5">
             {demoSessions.map((s) => (
               <SessionCard
