@@ -12,10 +12,13 @@ import {
   User,
   MapPin,
   AlertTriangle,
+  AlertCircle,
   Clock,
   MessageSquare,
   Package,
   Lock,
+  CheckCircle,
+  FileText,
 } from "lucide-react";
 import clsx from "clsx";
 import { ChatMessage, EquipmentIdentifiedCard, BulletinAlertCard, PartsInfoCard, formatRelativeTime, parseMetadata } from "@/components/chat-message";
@@ -78,6 +81,8 @@ export default function SessionWorkspacePage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [pendingRetry, setPendingRetry] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [contextExpanded, setContextExpanded] = useState(false);
   const [newMessageIds, setNewMessageIds] = useState<Set<string>>(new Set());
@@ -145,6 +150,8 @@ export default function SessionWorkspacePage() {
 
     const trimmed = content.trim();
     setInput("");
+    setSendError(null);
+    setPendingRetry(null);
     setSending(true);
 
     const optimisticMsg: Message = {
@@ -176,11 +183,31 @@ export default function SessionWorkspacePage() {
         });
         setNewMessageIds(responseIds);
 
+        // Auto-expand context panel if a safety-critical bulletin was returned
+        const hasSafetyCritical = responses.some((r: Message) => {
+          if (r.messageType !== "bulletin_alert") return false;
+          try {
+            const meta = JSON.parse(r.metadata ?? "{}");
+            return meta.severity === "safety_critical" || meta.bulletins?.some((b: { severity: string }) => b.severity === "safety_critical");
+          } catch {
+            return false;
+          }
+        });
+        if (hasSafetyCritical) setContextExpanded(true);
+
         fetchSession();
+      } else {
+        setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+        setInput(trimmed);
+        setSendError("Failed to send — server error");
+        setPendingRetry(trimmed);
       }
     } catch (err) {
       console.error("Failed to send message:", err);
       setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+      setInput(trimmed);
+      setSendError("Failed to send — check your connection");
+      setPendingRetry(trimmed);
     } finally {
       setSending(false);
       inputRef.current?.focus();
@@ -296,7 +323,7 @@ export default function SessionWorkspacePage() {
                 What equipment are you working on?
               </p>
               <p className="text-xs text-field-muted mt-1.5 leading-relaxed">
-                Enter a model number, or tap a suggestion below.
+                Enter a model number or serial number, or tap a suggestion below.
               </p>
             </div>
           )}
@@ -328,6 +355,45 @@ export default function SessionWorkspacePage() {
 
         {/* Quick Actions + Input */}
         <div className="sticky bottom-0 border-t border-field-border bg-field-bg safe-bottom">
+          {/* Send error banner */}
+          {sendError && (
+            <div className="flex items-center justify-between gap-3 border-b border-field-red/20 bg-field-red/5 px-4 py-2.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <AlertCircle className="h-3.5 w-3.5 text-field-red shrink-0" />
+                <span className="text-xs text-field-red font-medium truncate">{sendError}</span>
+              </div>
+              {pendingRetry && (
+                <button
+                  onClick={() => { setSendError(null); sendMessage(pendingRetry); }}
+                  className="shrink-0 rounded-xl bg-field-red/15 px-3 py-1.5 text-xs font-semibold text-field-red hover:bg-field-red/25 transition-colors"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Completed session banner */}
+          {!isDemo && session?.status === "completed" && (
+            <div className="flex items-center justify-between gap-3 border-b border-field-blue/20 bg-field-blue/5 px-4 py-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <CheckCircle className="h-3.5 w-3.5 text-field-blue shrink-0" />
+                <span className="text-xs text-field-blue font-medium">
+                  Session completed — chat is locked
+                </span>
+              </div>
+              {session.reportId && (
+                <a
+                  href={`/session/${session.id}/report`}
+                  className="shrink-0 flex items-center gap-1.5 rounded-xl bg-field-blue/15 px-3 py-1.5 text-xs font-semibold text-field-blue hover:bg-field-blue/25 transition-colors"
+                >
+                  <FileText className="h-3 w-3" />
+                  View Report
+                </a>
+              )}
+            </div>
+          )}
+
           {/* Demo read-only banner */}
           {isDemo ? (
             <div className="flex items-center justify-between gap-3 border-b border-field-amber/20 bg-field-amber/5 px-4 py-3">
@@ -365,7 +431,11 @@ export default function SessionWorkspacePage() {
               placeholder={
                 isDemo
                   ? "Demo session — start your own to try it"
-                  : "Ask about equipment, parts, bulletins..."
+                  : session?.status !== "active"
+                  ? "Session completed — chat is locked"
+                  : hasEquipment
+                  ? "Ask about parts, bulletins, diagnostics..."
+                  : "Enter model number or serial number..."
               }
               disabled={isDemo || sending || session?.status !== "active"}
               className="flex-1 rounded-xl border border-field-border bg-field-surface2 px-4 py-3.5 text-sm text-field-text placeholder:text-field-muted focus:outline-none focus:ring-2 focus:ring-field-accent/40 focus:border-field-accent transition-all disabled:opacity-50 disabled:bg-field-surface"

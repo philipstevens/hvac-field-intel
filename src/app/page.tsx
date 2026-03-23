@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { models, bulletins, serviceReports, parts, sessions } from '@/db/schema';
+import { models, bulletins, serviceReports, parts, sessions, productLines, manufacturers } from '@/db/schema';
 import { count, eq, desc } from 'drizzle-orm';
 import Link from 'next/link';
 import {
@@ -26,8 +26,20 @@ export default async function Dashboard() {
     [partCount],
   ] = await Promise.all([
     db
-      .select()
+      .select({
+        id: sessions.id,
+        technicianName: sessions.technicianName,
+        customerName: sessions.customerName,
+        serialNumber: sessions.serialNumber,
+        createdAt: sessions.createdAt,
+        equipmentModelId: sessions.equipmentModelId,
+        modelNumber: models.modelNumber,
+        manufacturer: manufacturers.name,
+      })
       .from(sessions)
+      .leftJoin(models, eq(sessions.equipmentModelId, models.id))
+      .leftJoin(productLines, eq(models.productLineId, productLines.id))
+      .leftJoin(manufacturers, eq(productLines.manufacturerId, manufacturers.id))
       .where(eq(sessions.status, 'active'))
       .orderBy(desc(sessions.createdAt))
       .limit(5),
@@ -65,7 +77,7 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      <Link href="/session" className="group block active:scale-[0.985] transition-transform">
+      <Link href="/session?new=1" className="group block active:scale-[0.985] transition-transform">
         <div className="relative overflow-hidden rounded-2xl shadow-lg shadow-field-accent/15">
           {/* gradient base */}
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500 via-field-accent to-orange-700" />
@@ -130,7 +142,11 @@ export default async function Dashboard() {
                         {s.customerName || s.technicianName}
                       </p>
                       <p className="text-xs text-field-muted mt-0.5">
-                        {s.serialNumber ? `S/N ${s.serialNumber}` : 'No equipment yet'}
+                        {s.modelNumber
+                          ? <span className="font-bc font-semibold text-field-muted-bright">{s.manufacturer ? `${s.manufacturer} ` : ''}{s.modelNumber}</span>
+                          : s.serialNumber
+                          ? `S/N ${s.serialNumber}`
+                          : 'No equipment yet'}
                         {' · '}
                         {elapsedLabel} ago
                       </p>

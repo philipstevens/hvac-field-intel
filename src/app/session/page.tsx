@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Plus,
   MessageSquare,
@@ -35,8 +35,11 @@ interface Session {
   messageCount: number;
 }
 
+const TECH_NAME_KEY = "hvac_tech_name";
+
 export default function SessionListPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -45,6 +48,12 @@ export default function SessionListPage() {
   const [technicianName, setTechnicianName] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [siteAddress, setSiteAddress] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem(TECH_NAME_KEY);
+    if (saved) setTechnicianName(saved);
+    if (searchParams.get("new") === "1") setShowForm(true);
+  }, [searchParams]);
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -82,6 +91,7 @@ export default function SessionListPage() {
 
       if (res.ok) {
         const { session } = await res.json();
+        localStorage.setItem(TECH_NAME_KEY, technicianName.trim());
         router.push(`/session/${session.id}`);
       }
     } catch (err) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { sessions, sessionMessages, models, productLines, manufacturers } from '@/db/schema';
+import { sessions, sessionMessages, analyticsEvents, models, productLines, manufacturers } from '@/db/schema';
 import { eq, desc, like, and, ne, or, isNull, sql } from 'drizzle-orm';
 import crypto from 'crypto';
 
@@ -36,6 +36,13 @@ export async function POST(request: NextRequest) {
     };
 
     await db.insert(sessions).values(session);
+
+    await db.insert(analyticsEvents).values({
+      id: crypto.randomUUID(),
+      eventType: 'session_created',
+      metadata: JSON.stringify({ sessionId, technicianName: body.technicianName, hasCustomer: !!body.customerName }),
+      createdAt: now,
+    });
 
     const message = {
       id: messageId,

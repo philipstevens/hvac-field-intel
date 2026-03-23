@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { sessions, sessionMessages } from '@/db/schema';
+import { sessions, sessionMessages, analyticsEvents } from '@/db/schema';
 import { eq, asc } from 'drizzle-orm';
 import { processMessage } from '@/lib/session-engine';
 import crypto from 'crypto';
@@ -79,6 +79,19 @@ export async function POST(
 
       await db.insert(sessionMessages).values(responseRecord);
       insertedResponses.push(responseRecord);
+    }
+
+    // Write analytics events for key message types
+    const analyticsToInsert = insertedResponses
+      .filter((r) => ['equipment_identified', 'bulletin_alert', 'report_generated'].includes(r.messageType))
+      .map((r) => ({
+        id: crypto.randomUUID(),
+        eventType: r.messageType,
+        metadata: JSON.stringify({ sessionId: id, messageId: r.id }),
+        createdAt: new Date().toISOString(),
+      }));
+    if (analyticsToInsert.length > 0) {
+      await db.insert(analyticsEvents).values(analyticsToInsert);
     }
 
     return NextResponse.json({
